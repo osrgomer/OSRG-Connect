@@ -280,7 +280,7 @@ include 'series_header.php';
         // Load series from MySQL
         async function loadSeriesFromDatabase() {
             try {
-                const response = await fetch('/serieslist/series_api_series.php?action=get_all');
+                const response = await fetch('series_api_series.php?action=get_all');
                 const data = await response.json();
                 
                 if (data.success) {
@@ -302,7 +302,7 @@ include 'series_header.php';
         // Save series to MySQL
         async function saveSeriesToDatabase(series) {
             try {
-                const response = await fetch('/serieslist/series_api_series.php?action=save', {
+                const response = await fetch('series_api_series.php?action=save', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(series)
@@ -323,7 +323,7 @@ include 'series_header.php';
         // Delete series from MySQL
         async function deleteSeriesFromDatabase(id) {
             try {
-                const response = await fetch('/serieslist/series_api_series.php?action=delete', {
+                const response = await fetch('series_api_series.php?action=delete', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ id: id })

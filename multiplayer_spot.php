@@ -390,12 +390,12 @@ function updateGameState(data) {
     const baseUrl = '<?php echo $baseUrl; ?>';
     
     if (!image1.src || !image1.src.includes('scene1.svg')) {
-        const path1 = 'https://osrg.lol/osrg/private_social_platform/assets/spot_the_difference/scene1.svg';
+        const path1 = 'https://osrg.lol/osrgassets/spot_the_difference/scene1.svg';
         console.log('Setting image1 src to:', path1);
         image1.src = path1 + '?' + timestamp;
     }
     if (!image2.src || !image2.src.includes('scene2.svg')) {
-        const path2 = 'https://osrg.lol/osrg/private_social_platform/assets/spot_the_difference/scene2.svg';
+        const path2 = 'https://osrg.lol/osrgassets/spot_the_difference/scene2.svg';
         console.log('Setting image2 src to:', path2);
         image2.src = path2 + '?' + timestamp;
     }

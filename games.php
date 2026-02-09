@@ -160,14 +160,14 @@ require_once 'header.php';
         <span class="game-icon">💎</span>
         <h3 class="game-title">MineMod Archive</h3>
         <p class="game-description">Advanced modding intelligence and Void Sage AI for Minecraft enthusiasts.</p>
-        <a href="../minemod/" class="play-button">Open Archive</a>
+        <a href="mine_index.php" class="play-button">Open Archive</a>
     </div>
 
     <div class="game-card">
         <span class="game-icon">❓</span>
         <h3 class="game-title">Quiz Generator</h3>
         <p class="game-description">Challenge yourself with custom generated quizzes on any topic!</p>
-        <a href="../quiz/Quizz_Generator.html" class="play-button">Start Quiz</a>
+        <a href="quiz_Quizz_Generator.html" class="play-button">Start Quiz</a>
     </div>
 
     <div class="game-card">

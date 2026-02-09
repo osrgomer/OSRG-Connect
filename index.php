@@ -194,7 +194,7 @@ if (isset($_POST['content'])) {
     <meta property="og:title" content="OSRG Connect - Public Feed">
     <meta property="og:description" content="Connect with friends and share your thoughts on OSRG Connect - A private social media platform.">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://osrg.lol/osrg/private_social_platform/index.php">
+    <meta property="og:url" content="https://osrg.lol/osrgindex.php">
     <meta property="og:site_name" content="OSRG Connect">
     <meta property="og:locale" content="en_US">
     

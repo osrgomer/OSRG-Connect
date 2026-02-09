@@ -6,11 +6,11 @@
                 <span class="font-bold text-lg tracking-tight sm:hidden text-slate-900 dark:text-slate-100">SL</span>
             </div>
             <nav class="hidden md:flex items-center gap-1">
-                <a href="/serieslist/" class="px-3 py-2 text-sm font-medium <?php echo ($current_page ?? '') === 'library' ? 'text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30' : 'text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-50 dark:hover:bg-slate-700'; ?> rounded-lg transition-colors">Library</a>
-                <a href="/serieslist/friends" class="px-3 py-2 text-sm font-medium <?php echo ($current_page ?? '') === 'friends' ? 'text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30' : 'text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-50 dark:hover:bg-slate-700'; ?> rounded-lg transition-colors">Friends</a>
-                <a href="/serieslist/trivia" class="px-3 py-2 text-sm font-medium <?php echo ($current_page ?? '') === 'trivia' ? 'text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30' : 'text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-50 dark:hover:bg-slate-700'; ?> rounded-lg transition-colors">Trivia</a>
-                <a href="/serieslist/voice" class="px-3 py-2 text-sm font-medium <?php echo ($current_page ?? '') === 'voice' ? 'text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30' : 'text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-50 dark:hover:bg-slate-700'; ?> rounded-lg transition-colors">Voice</a>
-                <a href="/serieslist/account" class="px-3 py-2 text-sm font-medium <?php echo ($current_page ?? '') === 'account' ? 'text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30' : 'text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-50 dark:hover:bg-slate-700'; ?> rounded-lg transition-colors">Account</a>
+                <a href="" class="px-3 py-2 text-sm font-medium <?php echo ($current_page ?? '') === 'library' ? 'text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30' : 'text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-50 dark:hover:bg-slate-700'; ?> rounded-lg transition-colors">Library</a>
+                <a href="friends" class="px-3 py-2 text-sm font-medium <?php echo ($current_page ?? '') === 'friends' ? 'text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30' : 'text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-50 dark:hover:bg-slate-700'; ?> rounded-lg transition-colors">Friends</a>
+                <a href="trivia" class="px-3 py-2 text-sm font-medium <?php echo ($current_page ?? '') === 'trivia' ? 'text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30' : 'text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-50 dark:hover:bg-slate-700'; ?> rounded-lg transition-colors">Trivia</a>
+                <a href="voice" class="px-3 py-2 text-sm font-medium <?php echo ($current_page ?? '') === 'voice' ? 'text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30' : 'text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-50 dark:hover:bg-slate-700'; ?> rounded-lg transition-colors">Voice</a>
+                <a href="account" class="px-3 py-2 text-sm font-medium <?php echo ($current_page ?? '') === 'account' ? 'text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30' : 'text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-50 dark:hover:bg-slate-700'; ?> rounded-lg transition-colors">Account</a>
             </nav>
             <div class="flex items-center gap-2">
                 <!-- Online Status Toggle -->
@@ -60,13 +60,13 @@
                         <i class="fas fa-bars"></i>
                     </button>
                     <div id="mobileMenu" class="hidden absolute right-0 top-12 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg py-2 min-w-[120px]">
-                        <a href="/serieslist/" class="block px-4 py-2 text-sm font-medium <?php echo ($current_page ?? '') === 'library' ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'; ?>">Library</a>
-                        <a href="/serieslist/friends" class="block px-4 py-2 text-sm font-medium <?php echo ($current_page ?? '') === 'friends' ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'; ?>">Friends</a>
-                        <a href="/serieslist/trivia" class="block px-4 py-2 text-sm font-medium <?php echo ($current_page ?? '') === 'trivia' ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'; ?>">Trivia</a>
-                        <a href="/serieslist/voice" class="block px-4 py-2 text-sm font-medium <?php echo ($current_page ?? '') === 'voice' ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'; ?>">Voice</a>
-                        <a href="/serieslist/account" class="block px-4 py-2 text-sm font-medium <?php echo ($current_page ?? '') === 'account' ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'; ?>">Account</a>
+                        <a href="" class="block px-4 py-2 text-sm font-medium <?php echo ($current_page ?? '') === 'library' ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'; ?>">Library</a>
+                        <a href="friends" class="block px-4 py-2 text-sm font-medium <?php echo ($current_page ?? '') === 'friends' ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'; ?>">Friends</a>
+                        <a href="trivia" class="block px-4 py-2 text-sm font-medium <?php echo ($current_page ?? '') === 'trivia' ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'; ?>">Trivia</a>
+                        <a href="voice" class="block px-4 py-2 text-sm font-medium <?php echo ($current_page ?? '') === 'voice' ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'; ?>">Voice</a>
+                        <a href="account" class="block px-4 py-2 text-sm font-medium <?php echo ($current_page ?? '') === 'account' ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'; ?>">Account</a>
                         <hr class="my-2 border-slate-200 dark:border-slate-700">
-                        <a href="/serieslist/logout" class="block px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20">Logout</a>
+                        <a href="logout" class="block px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20">Logout</a>
                     </div>
                 </div>
                 <?php echo $extra_buttons ?? ''; ?>
@@ -120,7 +120,7 @@
         // Load notifications
         async function loadNotifications() {
             try {
-                const response = await fetch('/serieslist/series_api_users.php?action=get_activity');
+                const response = await fetch('series_api_users.php?action=get_activity');
                 const data = await response.json();
                 
                 if (data.success && data.activities.length > 0) {
@@ -173,7 +173,7 @@
         
         async function updateNotificationBadge() {
             try {
-                const response = await fetch('/serieslist/series_api_users.php?action=get_activity');
+                const response = await fetch('series_api_users.php?action=get_activity');
                 const data = await response.json();
                 
                 if (data.success && data.activities.length > 0) {
@@ -217,7 +217,7 @@
         // Make setStatus globally accessible
         window.setStatus = async function(status) {
             try {
-                const response = await fetch('/serieslist/series_api_users.php?action=set_online_status', {
+                const response = await fetch('series_api_users.php?action=set_online_status', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ status: status })

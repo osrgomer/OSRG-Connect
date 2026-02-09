@@ -428,7 +428,7 @@ $recentActivities = $pdo->query("
         }
         
         function updateCounters() {
-            fetch('/serieslist/series_api_online_count.php')
+            fetch('series_api_online_count.php')
                 .then(response => response.json())
                 .then(data => {
                     // Update online count
