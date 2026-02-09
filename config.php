@@ -56,13 +56,18 @@ function init_db() {
         $pdo->exec("ALTER TABLE users ADD COLUMN email_notifications TINYINT DEFAULT 0");
     } catch (Exception $e) {}
     
-    // 2. Create posts table with reel support
+    // 2. Create posts table with reel support and BLOB storage
+    try {
+        $pdo->exec("ALTER TABLE posts ADD COLUMN file_content LONGBLOB");
+    } catch (Exception $e) {}
+    
     $pdo->exec("CREATE TABLE IF NOT EXISTS posts (
         id INT AUTO_INCREMENT PRIMARY KEY, 
         user_id INT NOT NULL, 
         content TEXT, 
         file_path VARCHAR(500),
         file_type VARCHAR(50),
+        file_content LONGBLOB,
         post_type VARCHAR(50) DEFAULT 'post',
         reel_serial INT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

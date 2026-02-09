@@ -134,6 +134,8 @@ if (isset($_POST['content'])) {
     $file_path = null;
     $file_type = null;
     
+    $file_blob = null;
+    
     // Handle file upload
     if (isset($_FILES['file']) && $_FILES['file']['error'] == 0) {
         $allowed = ['mp4', 'mp3', 'png', 'jpg', 'jpeg'];
@@ -153,17 +155,16 @@ if (isset($_POST['content'])) {
             if (move_uploaded_file($_FILES['file']['tmp_name'], $upload_path)) {
                 $file_path = $upload_path;
                 $file_type = $file_ext;
+                $file_blob = file_get_contents($upload_path); // Save file to DB
             }
         }
     }
     
     try {
-        $stmt = $pdo->prepare("INSERT INTO posts (user_id, content, file_path, file_type, post_type) VALUES (?, ?, ?, ?, 'post')");
-        $stmt->execute([$_SESSION['user_id'], $_POST['content'], $file_path, $file_type]);
+        $stmt = $pdo->prepare("INSERT INTO posts (user_id, content, file_path, file_type, file_content, post_type) VALUES (?, ?, ?, ?, ?, 'post')");
+        $stmt->execute([$_SESSION['user_id'], $_POST['content'], $file_path, $file_type, $file_blob]);
     } catch (Exception $e) {
-        // Fallback for old database
-        $stmt = $pdo->prepare("INSERT INTO posts (user_id, content, file_path, file_type) VALUES (?, ?, ?, ?)");
-        $stmt->execute([$_SESSION['user_id'], $_POST['content'], $file_path, $file_type]);
+        // Logging error if needed
     }
     
     header('Location: home');
@@ -634,16 +635,15 @@ if (isset($_POST['content'])) {
                 <div style="margin: 10px 0;">
                     <?php if ($post['file_type'] == 'mp4'): ?>
                         <video controls style="width: 100%; max-width: 100%; display: block;">
-                            <source src="<?= $post['file_path'] ?>" type="video/mp4">
+                            <source src="serve_asset.php?file=<?= htmlspecialchars(basename($post['file_path'])) ?>" type="video/mp4">
                         </video>
                     <?php elseif ($post['file_type'] == 'mp3'): ?>
                         <audio controls preload="metadata" style="width: 100%; display: block;">
-                            <source src="<?= $post['file_path'] ?>" type="audio/mpeg">
-                            <source src="<?= $post['file_path'] ?>" type="audio/mp3">
+                            <source src="serve_asset.php?file=<?= htmlspecialchars(basename($post['file_path'])) ?>" type="audio/mpeg">
                             Your browser does not support the audio element.
                         </audio>
                     <?php elseif (in_array($post['file_type'], ['png', 'jpg', 'jpeg'])): ?>
-                        <img src="<?= htmlspecialchars($post['file_path']) ?>" alt="Uploaded image" style="width: 100%; max-width: 100%; display: block; border-radius: 8px;">
+                        <img src="serve_asset.php?file=<?= htmlspecialchars(basename($post['file_path'])) ?>" alt="Uploaded image" style="width: 100%; max-width: 100%; display: block; border-radius: 8px;">
                     <?php endif; ?>
                 </div>
                 <?php endif; ?>

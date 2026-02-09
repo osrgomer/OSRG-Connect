@@ -157,10 +157,14 @@ require_once 'header.php';
                     <div style="margin: 10px 0;">
                         <?php if ($post['file_type'] == 'mp4'): ?>
                             <video controls style="width: 100%; max-width: 100%;">
-                                <source src="/<?= htmlspecialchars($post['file_path']) ?>" type="video/mp4">
+                                <source src="serve_asset.php?file=<?= htmlspecialchars(basename($post['file_path'])) ?>" type="video/mp4">
                             </video>
+                        <?php elseif ($post['file_type'] == 'mp3'): ?>
+                            <audio controls preload="metadata" style="width: 100%; display: block;">
+                                <source src="serve_asset.php?file=<?= htmlspecialchars(basename($post['file_path'])) ?>" type="audio/mpeg">
+                            </audio>
                         <?php elseif (in_array($post['file_type'], ['png', 'jpg', 'jpeg'])): ?>
-                            <img src="/<?= htmlspecialchars($post['file_path']) ?>" alt="Image" style="max-width: 100%; border-radius: 8px;">
+                            <img src="serve_asset.php?file=<?= htmlspecialchars(basename($post['file_path'])) ?>" alt="Image" style="max-width: 100%; border-radius: 8px;">
                         <?php endif; ?>
                     </div>
                     <?php endif; ?>
