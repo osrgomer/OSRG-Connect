@@ -35,7 +35,7 @@ if (file_exists($full_path)) {
     exit;
 }
 
-// 2. Try serving from Database (BLOB backup)
+// 2. Try serving from Database (Post Attachments BLOB)
 if ($pdo) {
     try {
         $stmt = $pdo->prepare("SELECT file_content, file_type FROM posts WHERE file_path LIKE ? LIMIT 1");
@@ -44,19 +44,33 @@ if ($pdo) {
         
         if ($file && $file['file_content']) {
             $file_ext = strtolower($file['file_type']);
-            $mime_types = [
-                'mp4' => 'video/mp4', 'mov' => 'video/quicktime', 'avi' => 'video/x-msvideo',
-                'mp3' => 'audio/mpeg', 'png' => 'image/png', 'jpg' => 'image/jpeg', 'jpeg' => 'image/jpeg'
-            ];
-            $mime_type = $mime_types[$file_ext] ?? 'application/octet-stream';
-            
-            header('Content-Type: ' . $mime_type);
-            header('Content-Length: ' . strlen($file['file_content']));
-            header('Cache-Control: public, max-age=3600');
-            echo $file['file_content'];
-            exit;
+            serve_blob($file['file_content'], $file_ext);
+        }
+        
+        // 3. Try serving from Database (User Avatars BLOB)
+        $stmt = $pdo->prepare("SELECT avatar_content, avatar FROM users WHERE avatar LIKE ? LIMIT 1");
+        $stmt->execute(['%' . basename($video_file)]);
+        $user_data = $stmt->fetch();
+        
+        if ($user_data && $user_data['avatar_content']) {
+            $file_ext = strtolower(pathinfo($user_data['avatar'], PATHINFO_EXTENSION));
+            serve_blob($user_data['avatar_content'], $file_ext);
         }
     } catch (Exception $e) {}
+}
+
+function serve_blob($content, $ext) {
+    $mime_types = [
+        'mp4' => 'video/mp4', 'mov' => 'video/quicktime', 'avi' => 'video/x-msvideo',
+        'mp3' => 'audio/mpeg', 'png' => 'image/png', 'jpg' => 'image/jpeg', 'jpeg' => 'image/jpeg', 'webp' => 'image/webp'
+    ];
+    $mime_type = $mime_types[$ext] ?? 'application/octet-stream';
+    
+    header('Content-Type: ' . $mime_type);
+    header('Content-Length: ' . strlen($content));
+    header('Cache-Control: public, max-age=3600');
+    echo $content;
+    exit;
 }
 
 http_response_code(404);

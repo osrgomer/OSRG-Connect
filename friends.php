@@ -117,10 +117,16 @@ require_once 'header.php';
                 <?php foreach ($friend_posts as $post): ?>
                 <div style="background: white; padding: 15px; margin: 10px 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                     <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                        <?php if ($post['avatar'] && strpos($post['avatar'], 'sp_avatars/') === 0): ?>
-                            <img src="/<?= htmlspecialchars($post['avatar']) ?>" alt="Avatar" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
-                        <?php elseif ($post['avatar']): ?>
-                            <span style="font-size: 30px;"><?= htmlspecialchars($post['avatar']) ?></span>
+                        <?php if ($post['avatar']): ?>
+                            <?php 
+                            $is_local_img = (strpos($post['avatar'], 'sp_avatars/') === 0 || strpos($post['avatar'], 'avatars/') === 0 || preg_match('/\.(jpg|jpeg|png|gif|webp)$/i', $post['avatar']));
+                            $avatar_url = $is_local_img ? 'serve_asset.php?file=' . basename($post['avatar']) : $post['avatar'];
+                            ?>
+                            <?php if ($is_local_img || strpos($post['avatar'], 'http') === 0): ?>
+                                <img src="<?= htmlspecialchars($avatar_url) ?>" alt="Avatar" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+                            <?php else: ?>
+                                <span style="font-size: 30px;"><?= htmlspecialchars($post['avatar']) ?></span>
+                            <?php endif; ?>
                         <?php else: ?>
                             <span style="font-size: 30px;">👤</span>
                         <?php endif; ?>

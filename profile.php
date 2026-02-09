@@ -236,9 +236,12 @@ require_once 'header.php';
         $user_avatar = $profile_user['avatar'] ?? null;
         $random_avatars = ['👤', '👨', '👩', '🧑', '👶', '🐱', '🐶', '🦊'];
         $default_avatar = $random_avatars[($user_id ?? 0) % count($random_avatars)];
+        
+        $is_local_img = $user_avatar && (strpos($user_avatar, 'sp_avatars/') === 0 || strpos($user_avatar, 'avatars/') === 0 || preg_match('/\.(jpg|jpeg|png|gif|webp)$/i', $user_avatar));
+        $avatar_url = $is_local_img ? 'serve_asset.php?file=' . basename($user_avatar) : $user_avatar;
         ?>
-        <?php if ($user_avatar && strpos($user_avatar, 'sp_avatars/') === 0): ?>
-            <img src="/<?= htmlspecialchars($user_avatar) ?>" alt="Avatar" class="avatar-large">
+        <?php if ($is_local_img || ($user_avatar && strpos($user_avatar, 'http') === 0)): ?>
+            <img src="<?= htmlspecialchars($avatar_url) ?>" alt="Avatar" class="avatar-large">
         <?php elseif ($user_avatar): ?>
             <div style="font-size: 120px; margin-bottom: 20px;"><?= htmlspecialchars($user_avatar) ?></div>
         <?php else: ?>

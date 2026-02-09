@@ -581,8 +581,12 @@ if (isset($_POST['content'])) {
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <?php if ($post['avatar']): ?>
-                            <?php if (strpos($post['avatar'], 'sp_avatars/') === 0): ?>
-                                <img src="/<?= htmlspecialchars($post['avatar']) ?>" alt="Avatar" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+                            <?php 
+                            $is_local_img = (strpos($post['avatar'], 'sp_avatars/') === 0 || strpos($post['avatar'], 'avatars/') === 0 || preg_match('/\.(jpg|jpeg|png|gif|webp)$/i', $post['avatar']));
+                            $avatar_url = $is_local_img ? 'serve_asset.php?file=' . basename($post['avatar']) : $post['avatar'];
+                            ?>
+                            <?php if ($is_local_img || strpos($post['avatar'], 'http') === 0): ?>
+                                <img src="<?= htmlspecialchars($avatar_url) ?>" alt="Avatar" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
                             <?php else: ?>
                                 <span style="font-size: 30px;"><?= htmlspecialchars($post['avatar']) ?></span>
                             <?php endif; ?>
