@@ -123,14 +123,6 @@ if ($_GET['delete_post'] ?? false) {
 
 // Handle new post
 if (isset($_POST['content'])) {
-    // Check if user has remember me token and verify reCAPTCHA
-    $needs_captcha = isset($_COOKIE['remember_token']);
-    if ($needs_captcha && (!isset($_POST['g-recaptcha-response']) || !verify_recaptcha($_POST['g-recaptcha-response']))) {
-        // Redirect with error for remember me users
-        $_SESSION['post_error'] = 'Security verification failed. Please try again.';
-        header('Location: home');
-        exit;
-    }
     $file_path = null;
     $file_type = null;
     
