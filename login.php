@@ -42,7 +42,79 @@ if ($_POST['username'] ?? false) {
                 $error = 'Your account is pending approval.';
             }
         } 
-        // 2. Try SeriesList Login Fallback (MySQL)
+        }
+        // 1.5 Try Auto-Recovery from SQLite (The "Missing Account" Fix)
+        elseif (file_exists('private_social.db')) {
+            try {
+                $sqlite = new PDO('sqlite:private_social.db');
+                $stmt = $sqlite->prepare("SELECT * FROM users WHERE username = ? OR email = ?");
+                $stmt->execute([$identifier, $identifier]);
+                $sqlite_user = $stmt->fetch(PDO::FETCH_ASSOC);
+                
+                if ($sqlite_user) {
+                    $pwd_check = $sqlite_user['password_hash'] ?? $sqlite_user['password'] ?? '';
+                    
+                    if (password_verify($password, $pwd_check)) {
+                        // Found in old DB! Automatic Migration.
+                        $mysql = get_db();
+                        
+                        // Prepare avatar
+                        $avatar_blob = null;
+                        if (!empty($sqlite_user['avatar']) && file_exists($sqlite_user['avatar'])) {
+                            $avatar_blob = file_get_contents($sqlite_user['avatar']);
+                        }
+                        
+                        // Insert into MySQL
+                        $ins = $mysql->prepare("INSERT INTO users (username, email, password_hash, approved, timezone, email_notifications, avatar, avatar_content, bio, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                        $ins->execute([
+                            $sqlite_user['username'], 
+                            $sqlite_user['email'], 
+                            $pwd_check, 
+                            $sqlite_user['approved'] ?? 1,
+                            $sqlite_user['timezone'] ?? 'Europe/London',
+                            $sqlite_user['email_notifications'] ?? 0,
+                            $sqlite_user['avatar'],
+                            $avatar_blob,
+                            $sqlite_user['bio'] ?? null,
+                            $sqlite_user['created_at']
+                        ]);
+                        
+                        $new_user_id = $mysql->lastInsertId();
+                        $_SESSION['user_id'] = $new_user_id;
+
+                        // Migrate Posts (Instant Recovery)
+                        $p_stmt = $sqlite->prepare("SELECT * FROM posts WHERE user_id = ?");
+                        $p_stmt->execute([$sqlite_user['id']]);
+                        $old_posts = $p_stmt->fetchAll(PDO::FETCH_ASSOC);
+                        
+                        if ($old_posts) {
+                            $p_ins = $mysql->prepare("INSERT INTO posts (user_id, content, file_path, file_type, file_content, post_type, reel_serial, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+                            foreach ($old_posts as $post) {
+                                $file_blob = null;
+                                if (!empty($post['file_path']) && file_exists($post['file_path'])) {
+                                    $file_blob = file_get_contents($post['file_path']);
+                                }
+                                $p_ins->execute([
+                                    $new_user_id,
+                                    $post['content'],
+                                    $post['file_path'],
+                                    $post['file_type'],
+                                    $file_blob,
+                                    $post['post_type'] ?? 'post',
+                                    $post['reel_serial'] ?? null,
+                                    $post['created_at']
+                                ]);
+                            }
+                        }
+
+                        header('Location: index.php');
+                        exit;
+                    }
+                }
+            } catch (Exception $e) {
+                // Silent fail/continue to next fallback
+            }
+        } 
         elseif (file_exists('series_db.php')) {
             require_once 'series_db.php';
             $user_series = getUserByEmail($identifier);
