@@ -98,8 +98,11 @@ if (!isset($_SESSION['user_id'])) {
         
         <div class="nav-links" id="navLinks">
             <a href="index.php">Home</a>
+            <a href="../serieslist/" style="color: #4c1130; font-weight: bold;">📺 Series List</a>
             <a href="reels.php">🎬 Reels</a>
             <a href="games.php">🎮 Games</a>
+            <a href="../quiz/" style="font-weight: bold;">❓ Quiz</a>
+            <a href="../minemod/" style="color: #3b82f6; font-weight: bold;">💎 MineMod</a>
             <a href="users.php">Find Friends</a>
             <a href="friends.php">My Friends</a>
             <a href="messages.php">Messages</a>
