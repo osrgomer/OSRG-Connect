@@ -1,6 +1,13 @@
 RewriteEngine On
 
-# Pretty URLs - check if file doesn't exist first
+# 1. Directory Index
+DirectoryIndex index.php
+
+# 2. Uploads Video Redirect
+RewriteCond %{REQUEST_FILENAME} \.(mp4|mov|avi)$ [NC]
+RewriteRule ^sp_uploads/(.+)$ video.php?v=uploads/$1 [L,QSA]
+
+# 3. Known Pretty URLs
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteRule ^games/?$ games.php [L]
 
@@ -79,4 +86,12 @@ RewriteRule ^register/?$ register.php [L]
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^logout/?$ logout.php [L]
-# End Pretty URLs
+
+# 4. Remove .php extension from visible URLs (redirect to pretty)
+RewriteCond %{THE_REQUEST} ^[A-Z]{3,}\s([^.]+)\.php [NC]
+RewriteRule ^ %1 [R=301,L]
+
+# 5. Map pretty URLs back to .php files internally
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME}.php -f
+RewriteRule ^(.*?)/?$ $1.php [L]

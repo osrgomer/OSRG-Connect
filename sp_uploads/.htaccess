@@ -1,5 +1,0 @@
-RewriteEngine On
-
-# Redirect video files to video viewer
-RewriteCond %{REQUEST_FILENAME} \.(mp4|mov|avi)$ [NC]
-RewriteRule ^(.+)$ ../video.php?v=uploads/$1 [L,QSA]

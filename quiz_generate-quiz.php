@@ -2,11 +2,14 @@
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 
+require_once 'config.php';
+require_once 'config_keys.php';
+
 $data = json_decode(file_get_contents('php://input'), true);
 $topic = $data['topic'] ?? '';
 
-// Gemini API key - Place your Gemini API key here
-$apiKey = 'AIzaSyAAGk7e5nqt-tkDNr6kH1dkYbjd3N2a33w';
+// Gemini API key from config
+$apiKey = defined('GEMINI_API_KEY') ? GEMINI_API_KEY : '';
 
 if (!$topic) {
     http_response_code(400);
