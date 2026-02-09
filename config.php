@@ -47,6 +47,21 @@ function init_db() {
         $pdo->exec("ALTER TABLE users ADD COLUMN password_hash VARCHAR(255)");
     } catch (Exception $e) {}
     try {
+        $pdo->exec("ALTER TABLE users ADD COLUMN bio TEXT");
+    } catch (Exception $e) {}
+    try {
+        $pdo->exec("ALTER TABLE users ADD COLUMN avatar TEXT");
+    } catch (Exception $e) {}
+    try {
+        $pdo->exec("ALTER TABLE users ADD COLUMN avatar_content LONGBLOB");
+    } catch (Exception $e) {}
+    try {
+        $pdo->exec("ALTER TABLE users ADD COLUMN timezone VARCHAR(100) DEFAULT 'Europe/London'");
+    } catch (Exception $e) {}
+    try {
+        $pdo->exec("ALTER TABLE users ADD COLUMN email_notifications TINYINT DEFAULT 0");
+    } catch (Exception $e) {}
+    try {
         $pdo->exec("ALTER TABLE users ADD COLUMN approved TINYINT DEFAULT 1");
     } catch (Exception $e) {}
     try {

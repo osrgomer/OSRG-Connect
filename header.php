@@ -141,7 +141,10 @@ if (!isset($_SESSION['user_id'])) {
                 );
                 ?>
                 <?php if ($is_image): ?>
-                    <img src="<?= htmlspecialchars($avatar) ?>" alt="Avatar" class="user-avatar" style="object-fit: cover; width: 40px; height: 40px; border-radius: 50%;">
+                    <?php 
+                    $avatar_url = (strpos($avatar, 'http') === 0) ? $avatar : 'serve_asset.php?file=' . basename($avatar);
+                    ?>
+                    <img src="<?= htmlspecialchars($avatar_url) ?>" alt="Avatar" class="user-avatar" style="object-fit: cover; width: 40px; height: 40px; border-radius: 50%;">
                 <?php elseif (!empty($avatar)): ?>
                     <span style="font-size: 32px; cursor: pointer; display: inline-block; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
                         <?= htmlspecialchars($avatar) ?>

@@ -33,10 +33,12 @@ $current_bio = $user['bio'] ?? '';
 
 // Handle profile update
 if ($_POST['update_profile'] ?? false) {
+    if (!isset($pdo)) $pdo = get_db();
     $new_username = $_POST['username'];
     $new_email = $_POST['email'];
     $new_bio = $_POST['bio'] ?? '';
     $avatar = $current_avatar; // Keep current avatar by default
+    $avatar_blob = null;
     
     // Handle avatar upload (takes priority over preset)
     if (isset($_FILES['avatar']) && $_FILES['avatar']['error'] == 0) {
@@ -46,42 +48,35 @@ if ($_POST['update_profile'] ?? false) {
         $max_size = 2 * 1024 * 1024; // 2MB limit
         
         if ($file_size <= $max_size && in_array($file_ext, $allowed)) {
-            if (!is_dir('avatars')) {
-                mkdir('avatars', 0755, true);
+            if (!is_dir('sp_avatars')) {
+                mkdir('sp_avatars', 0755, true);
             }
             $avatar_filename = 'avatar_' . $_SESSION['user_id'] . '_' . time() . '.' . $file_ext;
             $avatar_path = 'sp_avatars/' . $avatar_filename;
             
             if (move_uploaded_file($_FILES['avatar']['tmp_name'], $avatar_path)) {
                 $avatar = $avatar_path;
+                $avatar_blob = file_get_contents($avatar_path);
             }
         }
     } elseif (!empty($_POST['preset_avatar'])) {
         // Only use preset if no file upload and preset is selected
         $avatar = $_POST['preset_avatar'];
+        $avatar_blob = null;
     }
     
-    // Add missing columns if they don't exist
+    // Ensure columns exist
+    try { $pdo->exec("ALTER TABLE users ADD COLUMN bio TEXT"); } catch (Exception $e) {}
+    try { $pdo->exec("ALTER TABLE users ADD COLUMN avatar TEXT"); } catch (Exception $e) {}
+    try { $pdo->exec("ALTER TABLE users ADD COLUMN avatar_content LONGBLOB"); } catch (Exception $e) {}
+
     try {
-        $pdo->exec("ALTER TABLE users ADD COLUMN bio TEXT");
-    } catch (Exception $e) {}
-    try {
-        $pdo->exec("ALTER TABLE users ADD COLUMN avatar TEXT");
-    } catch (Exception $e) {}
-    
-    try {
-        $stmt = $pdo->prepare("UPDATE users SET username = ?, email = ?, bio = ?, avatar = ? WHERE id = ?");
-        $stmt->execute([$new_username, $new_email, $new_bio, $avatar, $_SESSION['user_id']]);
+        $stmt = $pdo->prepare("UPDATE users SET username = ?, email = ?, bio = ?, avatar = ?, avatar_content = ? WHERE id = ?");
+        $stmt->execute([$new_username, $new_email, $new_bio, $avatar, $avatar_blob, $_SESSION['user_id']]);
         $message = 'Profile updated successfully!';
     } catch (Exception $e) {
-        // Fallback for missing columns
-        try {
-            $stmt = $pdo->prepare("UPDATE users SET username = ?, email = ? WHERE id = ?");
-            $stmt->execute([$new_username, $new_email, $_SESSION['user_id']]);
-            $message = 'Basic profile updated successfully!';
-        } catch (PDOException $e) {
-            $message = 'Error: Username or email already exists.';
-        }
+        // Fallback or handle error
+        $message = 'Error updating profile: ' . $e->getMessage();
     }
     // Refresh user data
     try {
