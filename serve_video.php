@@ -9,11 +9,15 @@ if (empty($video_file) || strpos($video_file, '..') !== false) {
 }
 
 $full_path = __DIR__ . '/uploads/' . basename($video_file);
+if (!file_exists($full_path)) {
+    $full_path = __DIR__ . '/sp_uploads/' . basename($video_file);
+}
 
 // Check if file exists
 if (!file_exists($full_path)) {
     http_response_code(404);
-    exit('File not found');
+    echo "File not found: " . htmlspecialchars($full_path);
+    exit;
 }
 
 // Get file info

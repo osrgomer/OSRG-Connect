@@ -59,27 +59,13 @@ if (isset($_POST['content'])) {
     
     // Require video file for reels
     if ($file_path && in_array($file_type, ['mp4', 'mov', 'avi'])) {
-        // First ensure required columns exist
-        try {
-            $pdo->exec("ALTER TABLE posts ADD COLUMN post_type TEXT DEFAULT 'post'");
-        } catch (Exception $e) {
-            // Column already exists, ignore
-        }
-        
-        try {
-            $pdo->exec("ALTER TABLE posts ADD COLUMN reel_serial INTEGER");
-        } catch (Exception $e) {
-            // Column already exists, ignore
-        }
-        
         try {
             // Get next serial number for reels
             $serial_stmt = $pdo->query("SELECT COALESCE(MAX(reel_serial), 0) + 1 as next_serial FROM posts WHERE post_type = 'reel'");
             $next_serial = $serial_stmt->fetchColumn();
             
             $stmt = $pdo->prepare("INSERT INTO posts (user_id, content, file_path, file_type, post_type, reel_serial) VALUES (?, ?, ?, ?, 'reel', ?)");
-            $result = $stmt->execute([$_SESSION['user_id'], $_POST['content'], $file_path, $file_type, $next_serial]);
-            $post_id = $pdo->lastInsertId();
+            $stmt->execute([$_SESSION['user_id'], $_POST['content'], $file_path, $file_type, $next_serial]);
             $_SESSION['reel_success'] = "Reel #$next_serial created successfully!";
         } catch (Exception $e) {
             $_SESSION['reel_error'] = 'Database error: ' . $e->getMessage();
@@ -88,7 +74,7 @@ if (isset($_POST['content'])) {
         $_SESSION['reel_error'] = 'Upload failed - File: ' . ($file_path ?: 'none') . ', Type: ' . ($file_type ?: 'none') . ', Error: ' . ($upload_error ?: 'unknown');
     }
     
-    header('Location: /reels');
+    header('Location: reels.php');
     exit;
 }
 

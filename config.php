@@ -32,82 +32,87 @@ if (!isset($_SESSION['user_id']) && isset($_COOKIE['remember_token'])) {
     }
 }
 
+require_once 'series_db.php';
+
 function get_db() {
-    try {
-        $pdo = new PDO('sqlite:private_social.db');
-        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        return $pdo;
-    } catch (PDOException $e) {
-        return null;
-    }
+    return getDB();
 }
 
 function init_db() {
     $pdo = get_db();
     if (!$pdo) return null;
     
-    $pdo->exec("CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT, 
-        username TEXT UNIQUE, 
-        email TEXT UNIQUE, 
-        password TEXT, 
-        approved INTEGER DEFAULT 0,
-        timezone TEXT DEFAULT 'Europe/London',
-        email_notifications INTEGER DEFAULT 0,
-        avatar TEXT DEFAULT NULL,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )");
+    // 1. Update users table (SeriesList already has some of these)
+    try {
+        $pdo->exec("ALTER TABLE users ADD COLUMN password_hash VARCHAR(255)");
+    } catch (Exception $e) {}
+    try {
+        $pdo->exec("ALTER TABLE users ADD COLUMN approved TINYINT DEFAULT 1");
+    } catch (Exception $e) {}
+    try {
+        $pdo->exec("ALTER TABLE users ADD COLUMN timezone VARCHAR(100) DEFAULT 'Europe/London'");
+    } catch (Exception $e) {}
+    try {
+        $pdo->exec("ALTER TABLE users ADD COLUMN email_notifications TINYINT DEFAULT 0");
+    } catch (Exception $e) {}
     
+    // 2. Create posts table with reel support
     $pdo->exec("CREATE TABLE IF NOT EXISTS posts (
-        id INTEGER PRIMARY KEY AUTOINCREMENT, 
-        user_id INTEGER, 
+        id INT AUTO_INCREMENT PRIMARY KEY, 
+        user_id INT NOT NULL, 
         content TEXT, 
-        file_path TEXT,
-        file_type TEXT,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY(user_id) REFERENCES users(id)
-    )");
+        file_path VARCHAR(500),
+        file_type VARCHAR(50),
+        post_type VARCHAR(50) DEFAULT 'post',
+        reel_serial INT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
     
+    // 3. Create friends table
     $pdo->exec("CREATE TABLE IF NOT EXISTS friends (
-        id INTEGER PRIMARY KEY AUTOINCREMENT, 
-        user_id INTEGER, 
-        friend_id INTEGER,
-        status TEXT, 
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY(user_id) REFERENCES users(id),
-        FOREIGN KEY(friend_id) REFERENCES users(id)
-    )");
+        id INT AUTO_INCREMENT PRIMARY KEY, 
+        user_id INT NOT NULL, 
+        friend_id INT NOT NULL,
+        status VARCHAR(50), 
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY(friend_id) REFERENCES users(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
     
+    // 4. Create messages table
     $pdo->exec("CREATE TABLE IF NOT EXISTS messages (
-        id INTEGER PRIMARY KEY AUTOINCREMENT, 
-        sender_id INTEGER, 
-        receiver_id INTEGER,
+        id INT AUTO_INCREMENT PRIMARY KEY, 
+        sender_id INT NOT NULL, 
+        receiver_id INT NOT NULL,
         content TEXT, 
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY(sender_id) REFERENCES users(id),
-        FOREIGN KEY(receiver_id) REFERENCES users(id)
-    )");
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(sender_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY(receiver_id) REFERENCES users(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
     
+    // 5. Create comments table
     $pdo->exec("CREATE TABLE IF NOT EXISTS comments (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        post_id INTEGER,
-        user_id INTEGER,
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        post_id INT NOT NULL,
+        user_id INT NOT NULL,
         content TEXT,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY(post_id) REFERENCES posts(id),
-        FOREIGN KEY(user_id) REFERENCES users(id)
-    )");
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(post_id) REFERENCES posts(id) ON DELETE CASCADE,
+        FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
     
+    // 6. Create reactions table
     $pdo->exec("CREATE TABLE IF NOT EXISTS reactions (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        post_id INTEGER,
-        user_id INTEGER,
-        reaction_type TEXT,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY(post_id) REFERENCES posts(id),
-        FOREIGN KEY(user_id) REFERENCES users(id),
-        UNIQUE(post_id, user_id)
-    )");
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        post_id INT NOT NULL,
+        user_id INT NOT NULL,
+        reaction_type VARCHAR(50),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(post_id) REFERENCES posts(id) ON DELETE CASCADE,
+        FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
+        UNIQUE KEY unique_reaction (post_id, user_id, reaction_type)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
     
     return $pdo;
 }
