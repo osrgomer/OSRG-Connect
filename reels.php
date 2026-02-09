@@ -28,17 +28,17 @@ if (isset($_POST['content'])) {
             
             if ($file_size <= $max_size && in_array($file_ext, $allowed)) {
                 // Create uploads directory with proper permissions
-                if (!is_dir('uploads')) {
-                    mkdir('uploads', 0777, true);
-                    chmod('uploads', 0777);
+                if (!is_dir('sp_uploads')) {
+                    mkdir('sp_uploads', 0777, true);
+                    chmod('sp_uploads', 0777);
                 }
                 
                 $new_filename = 'reel_' . time() . '_' . uniqid() . '.' . $file_ext;
                 $upload_path = 'sp_uploads/' . $new_filename;
                 
                 // Set proper permissions for the uploads directory
-                if (is_dir('uploads')) {
-                    chmod('uploads', 0777);
+                if (is_dir('sp_uploads')) {
+                    chmod('sp_uploads', 0777);
                 }
                 
                 if (move_uploaded_file($_FILES['file']['tmp_name'], $upload_path)) {
@@ -47,7 +47,7 @@ if (isset($_POST['content'])) {
                     // Set file permissions
                     chmod($upload_path, 0644);
                 } else {
-                    $upload_error = 'Failed to save uploaded file. Temp: ' . $_FILES['file']['tmp_name'] . ', Target: ' . $upload_path . ', Dir writable: ' . (is_writable('uploads') ? 'yes' : 'no');
+                    $upload_error = 'Failed to save uploaded file. Temp: ' . $_FILES['file']['tmp_name'] . ', Target: ' . $upload_path . ', Dir writable: ' . (is_writable('sp_uploads') ? 'yes' : 'no');
                 }
             } else {
                 $upload_error = 'Invalid file type or size too large.';
