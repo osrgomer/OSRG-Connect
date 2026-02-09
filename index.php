@@ -143,8 +143,8 @@ if (isset($_POST['content'])) {
         $max_size = 10 * 1024 * 1024; // 10MB limit
         
         if ($file_size <= $max_size && in_array($file_ext, $allowed)) {
-            if (!is_dir('uploads')) {
-                mkdir('uploads', 0755, true);
+            if (!is_dir('sp_uploads')) {
+                mkdir('sp_uploads', 0755, true);
             }
             
             $new_filename = uniqid() . '.' . $file_ext;

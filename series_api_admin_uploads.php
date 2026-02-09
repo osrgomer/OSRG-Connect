@@ -75,7 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['image'])) {
     $stmt = $db->query("SELECT u.*, usr.username FROM admin_uploads u JOIN users usr ON u.uploaded_by = usr.id ORDER BY u.uploaded_at DESC");
     $uploads = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
-    echo json_encode(['success' => true, 'uploads' => $uploads]);
+    echo json_encode(['success' => true, 'sp_uploads' => $uploads]);
     
 } else {
     http_response_code(400);

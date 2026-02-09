@@ -30,10 +30,10 @@ foreach ($posts as $post) {
 
 // Check uploads directory
 echo "<h3>Uploads Directory:</h3>";
-if (is_dir('uploads')) {
+if (is_dir('sp_uploads')) {
     echo "✓ Uploads directory exists<br>";
-    echo "Writable: " . (is_writable('uploads') ? 'YES' : 'NO') . "<br>";
-    $files = scandir('uploads');
+    echo "Writable: " . (is_writable('sp_uploads') ? 'YES' : 'NO') . "<br>";
+    $files = scandir('sp_uploads');
     echo "Files: " . implode(', ', array_filter($files, function($f) { return $f !== '.' && $f !== '..'; })) . "<br>";
 } else {
     echo "✗ Uploads directory missing<br>";

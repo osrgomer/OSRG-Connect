@@ -145,8 +145,8 @@ if ($_GET['website_backup'] ?? false) {
         }
         
         // Add uploads folder
-        if (is_dir('uploads')) {
-            $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator('uploads'));
+        if (is_dir('sp_uploads')) {
+            $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator('sp_uploads'));
             foreach ($iterator as $file) {
                 if ($file->isFile()) {
                     $zip->addFile($file->getPathname(), $file->getPathname());
@@ -237,8 +237,8 @@ try {
 // Get system info
 $db_size = filesize('private_social.db');
 $uploads_size = 0;
-if (is_dir('uploads')) {
-    $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator('uploads'));
+if (is_dir('sp_uploads')) {
+    $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator('sp_uploads'));
     foreach ($files as $file) {
         if ($file->isFile()) $uploads_size += $file->getSize();
     }
