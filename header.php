@@ -109,34 +109,45 @@ if (!isset($_SESSION['user_id'])) {
             <a href="profile.php">My Profile</a>
             <a href="settings.php">Settings</a>
             <?php
-            if (!isset($user_nav) || !$user_nav) {
-                $pdo_nav = get_db();
-                $stmt_nav = $pdo_nav->prepare("SELECT username, avatar FROM users WHERE id = ?");
-                $stmt_nav->execute([$_SESSION['user_id']]);
-                $user_nav = $stmt_nav->fetch();
+            if (isset($_SESSION['user_id'])) {
+                if (!isset($user_nav) || !$user_nav) {
+                    $pdo_nav = get_db();
+                    if ($pdo_nav) {
+                        $stmt_nav = $pdo_nav->prepare("SELECT username, avatar FROM users WHERE id = ?");
+                        $stmt_nav->execute([$_SESSION['user_id']]);
+                        $user_nav = $stmt_nav->fetch();
+                    }
+                }
             }
-            if ($user_nav && ($user_nav['username'] === 'OSRG' || $user_nav['username'] === 'backup')):
-            ?>
-            <a href="admin.php" style="color: #d32f2f; font-weight: bold;">Admin Panel</a>
+            if ($user_nav && ($user_nav['username'] === 'OSRG' || $user_nav['username'] === 'backup')): ?>
+                <a href="admin.php" style="color: #d32f2f; font-weight: bold;">Admin Panel</a>
             <?php endif; ?>
             <a href="logout.php">Logout</a>
         </div>
         
         <div class="avatar-container">
             <?php
-            $avatar = ($user_nav && isset($user_nav['avatar'])) ? $user_nav['avatar'] : null;
+            $avatar = ($user_nav && !empty($user_nav['avatar'])) ? $user_nav['avatar'] : null;
             $random_avatars = ['👤', '👨', '👩', '🧑', '👶', '🐱', '🐶', '🦊'];
             $default_avatar = $random_avatars[($_SESSION['user_id'] ?? 0) % count($random_avatars)];
             ?>
             <a href="settings.php#profile" style="text-decoration: none;">
-                <?php if ($avatar && (strpos($avatar, 'sp_avatars/') === 0 || strpos($avatar, 'avatars/') === 0 || strpos($avatar, '.') !== false)): ?>
-                    <img src="<?= htmlspecialchars($avatar) ?>" alt="Avatar" class="user-avatar" style="object-fit: cover;">
-                <?php elseif ($avatar): ?>
-                    <span style="font-size: 40px; cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+                <?php 
+                $is_image = $avatar && (
+                    strpos($avatar, 'sp_avatars/') === 0 || 
+                    strpos($avatar, 'avatars/') === 0 || 
+                    strpos($avatar, 'http') === 0 ||
+                    preg_match('/\.(jpg|jpeg|png|gif|webp)$/i', $avatar)
+                );
+                ?>
+                <?php if ($is_image): ?>
+                    <img src="<?= htmlspecialchars($avatar) ?>" alt="Avatar" class="user-avatar" style="object-fit: cover; width: 40px; height: 40px; border-radius: 50%;">
+                <?php elseif (!empty($avatar)): ?>
+                    <span style="font-size: 32px; cursor: pointer; display: inline-block; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
                         <?= htmlspecialchars($avatar) ?>
                     </span>
                 <?php else: ?>
-                    <span style="font-size: 40px; cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+                    <span style="font-size: 32px; cursor: pointer; display: inline-block; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
                         <?= $default_avatar ?>
                     </span>
                 <?php endif; ?>
