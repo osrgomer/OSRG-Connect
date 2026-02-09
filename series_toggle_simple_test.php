@@ -42,7 +42,7 @@
         
         console.log('Toggling to:', status);
         
-        fetch('/serieslist/series_api_set_status.php', {
+        fetch('series_api_set_status.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ status: status })
@@ -80,6 +80,6 @@
     </script>
     
     <hr>
-    <a href="/serieslist/">Back to app</a>
+    <a href="">Back to app</a>
 </body>
 </html>

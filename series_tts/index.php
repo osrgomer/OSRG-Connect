@@ -36,7 +36,7 @@ $extra_head = '';
   <script src="https://cdn.tailwindcss.com"></script>
   <script>tailwind.config = { darkMode: 'class' }</script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-  <script src="/serieslist/theme.js"></script>
+  <script src="theme.js"></script>
   <?php echo $extra_head; ?>
 </head>
 <body class="min-h-screen bg-slate-50 dark:bg-slate-900 transition-colors font-sans">

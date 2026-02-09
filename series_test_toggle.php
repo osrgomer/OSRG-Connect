@@ -40,5 +40,5 @@ if (isset($_SESSION['user_id'])) {
 echo "</pre>";
 
 echo "<hr>";
-echo "<a href='/serieslist/'>Back to Library</a>";
+echo "<a href=''>Back to Library</a>";
 ?>

@@ -68,7 +68,7 @@
         result.innerHTML = '<div class="info">Sending request to series_api_set_status.php...</div>';
         
         try {
-            const response = await fetch('/serieslist/series_api_set_status.php', {
+            const response = await fetch('series_api_set_status.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status: status })

@@ -7,7 +7,7 @@ $oauth_config = [
     'google' => [
         'client_id' => 'YOUR_GOOGLE_CLIENT_ID',
         'client_secret' => 'YOUR_GOOGLE_CLIENT_SECRET',
-        'redirect_uri' => 'http://localhost/serieslist/series_oauth.php?provider=google',
+        'redirect_uri' => 'http://localhostseries_oauth.php?provider=google',
         'auth_url' => 'https://accounts.google.com/o/oauth2/auth',
         'token_url' => 'https://oauth2.googleapis.com/token',
         'scope' => 'openid email profile'
@@ -15,7 +15,7 @@ $oauth_config = [
     'twitter' => [
         'client_id' => 'YOUR_TWITTER_CLIENT_ID',
         'client_secret' => 'YOUR_TWITTER_CLIENT_SECRET',
-        'redirect_uri' => 'http://localhost/serieslist/series_oauth.php?provider=twitter',
+        'redirect_uri' => 'http://localhostseries_oauth.php?provider=twitter',
         'auth_url' => 'https://twitter.com/i/oauth2/authorize',
         'token_url' => 'https://api.twitter.com/2/oauth2/token',
         'scope' => 'tweet.read users.read'
@@ -23,7 +23,7 @@ $oauth_config = [
     'spotify' => [
         'client_id' => 'YOUR_SPOTIFY_CLIENT_ID',
         'client_secret' => 'YOUR_SPOTIFY_CLIENT_SECRET',
-        'redirect_uri' => 'http://localhost/serieslist/series_oauth.php?provider=spotify',
+        'redirect_uri' => 'http://localhostseries_oauth.php?provider=spotify',
         'auth_url' => 'https://accounts.spotify.com/authorize',
         'token_url' => 'https://accounts.spotify.com/api/token',
         'scope' => 'user-read-private user-read-email'
