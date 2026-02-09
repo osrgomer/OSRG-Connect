@@ -1,4 +1,19 @@
+# Sensitive Configuration
 config_keys.php
+
+# Databases
 *.db
+
+# Uploads and User Assets
 uploads/
 avatars/
+sp_uploads/
+sp_avatars/
+series_uploads/
+series_tts/
+backups/
+
+# System and Logs
+*.log
+.DS_Store
+Thumbs.db

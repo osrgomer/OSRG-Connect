@@ -129,8 +129,8 @@ if (!isset($_SESSION['user_id'])) {
             $default_avatar = $random_avatars[($_SESSION['user_id'] ?? 0) % count($random_avatars)];
             ?>
             <a href="settings.php#profile" style="text-decoration: none;">
-                <?php if ($avatar && strpos($avatar, 'sp_avatars/') === 0): ?>
-                    <img src="/<?= htmlspecialchars($avatar) ?>" alt="Avatar" class="user-avatar" style="object-fit: cover;">
+                <?php if ($avatar && (strpos($avatar, 'sp_avatars/') === 0 || strpos($avatar, 'avatars/') === 0 || strpos($avatar, '.') !== false)): ?>
+                    <img src="<?= htmlspecialchars($avatar) ?>" alt="Avatar" class="user-avatar" style="object-fit: cover;">
                 <?php elseif ($avatar): ?>
                     <span style="font-size: 40px; cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
                         <?= htmlspecialchars($avatar) ?>
