@@ -5,27 +5,53 @@ if (session_status() === PHP_SESSION_NONE) {
 
 header('Content-Type: application/json');
 
-// Check admin access - allow if ORIGINAL user is admin (even when impersonating)
+const ADMIN_EMAIL = 'omersr12@gmail.com';
+
+require_once 'config.php';
+require_once 'series_db.php';
+
+// Unified Admin Authentication
 $isAdmin = false;
+
+// 1. Check if God Mode (Impersonation) exists and who started it
 if (isset($_SESSION['admin_origin'])) {
-    // User is in God Mode - check if they were originally admin
     $originalUserId = $_SESSION['admin_origin'];
-    $db = getDB();
-    $stmt = $db->prepare("SELECT email FROM users WHERE id = ?");
+    // Check if original user was social admin
+    $pdo_social = get_db();
+    $stmt = $pdo_social->prepare("SELECT username FROM users WHERE id = ?");
     $stmt->execute([$originalUserId]);
-    $email = $stmt->fetchColumn();
-    $isAdmin = ($email === 'omersr12@gmail.com');
-} elseif (isset($_SESSION['user_email'])) {
-    // Normal mode - check current user
-    $isAdmin = ($_SESSION['user_email'] === 'omersr12@gmail.com');
+    $u = $stmt->fetch();
+    if ($u && ($u['username'] === 'OSRG' || $u['username'] === 'backup')) {
+        $isAdmin = true;
+    }
+}
+
+// 2. Check current session if not already admin
+if (!$isAdmin) {
+    // Check Social Platform Admin (SQLite)
+    if (isset($_SESSION['user_id'])) {
+        $pdo_social = get_db();
+        $stmt = $pdo_social->prepare("SELECT username FROM users WHERE id = ?");
+        $stmt->execute([$_SESSION['user_id']]);
+        $u = $stmt->fetch();
+        if ($u && ($u['username'] === 'OSRG' || $u['username'] === 'backup')) {
+            $isAdmin = true;
+        }
+    }
+    
+    // Check SeriesList Admin (MySQL)
+    if (!$isAdmin && isset($_SESSION['user_email'])) {
+        if ($_SESSION['user_email'] === ADMIN_EMAIL) {
+            $isAdmin = true;
+        }
+    }
 }
 
 if (!$isAdmin) {
+    http_response_code(401);
     echo json_encode(['success' => false, 'error' => 'Unauthorized']);
     exit;
 }
-
-require_once 'series_db.php';
 
 $action = $_GET['action'] ?? '';
 $db = getDB();

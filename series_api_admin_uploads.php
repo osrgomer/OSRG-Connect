@@ -2,13 +2,32 @@
 session_start();
 header('Content-Type: application/json');
 
-if (!isset($_SESSION['user_logged_in']) || $_SESSION['user_email'] !== 'omersr12@gmail.com') {
+require_once 'config.php';
+require_once 'series_db.php';
+
+// Unified Admin Authentication
+$isAdmin = false;
+if (isset($_SESSION['user_id'])) {
+    $pdo_social = get_db();
+    $stmt = $pdo_social->prepare("SELECT username FROM users WHERE id = ?");
+    $stmt->execute([$_SESSION['user_id']]);
+    $u = $stmt->fetch();
+    if ($u && ($u['username'] === 'OSRG' || $u['username'] === 'backup')) {
+        $isAdmin = true;
+    }
+}
+if (!$isAdmin && isset($_SESSION['user_email'])) {
+    if ($_SESSION['user_email'] === 'omersr12@gmail.com') {
+        $isAdmin = true;
+    }
+}
+
+if (!$isAdmin) {
     http_response_code(401);
     echo json_encode(['success' => false, 'error' => 'Unauthorized']);
     exit;
 }
 
-require_once __DIR__ . '/series_db.php';
 $db = getDB();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['image'])) {
@@ -41,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['image'])) {
     }
     
     // Create uploads directory
-    $uploadDir = __DIR__ . '/uploads/admin/';
+    $uploadDir = __DIR__ . '/series_uploads/admin/';
     if (!is_dir($uploadDir)) {
         mkdir($uploadDir, 0755, true);
     }
@@ -75,7 +94,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['image'])) {
     $stmt = $db->query("SELECT u.*, usr.username FROM admin_uploads u JOIN users usr ON u.uploaded_by = usr.id ORDER BY u.uploaded_at DESC");
     $uploads = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
-    echo json_encode(['success' => true, 'sp_uploads' => $uploads]);
+    echo json_encode(['success' => true, 'uploads' => $uploads]);
     
 } else {
     http_response_code(400);
