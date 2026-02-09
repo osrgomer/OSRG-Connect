@@ -8,7 +8,7 @@ if ($_POST['username'] ?? false) {
     $password = $_POST['password'];
     
     // Check if we're on local environment
-    $is_local = strpos($_SERVER['HTTP_HOST'], 'osrg.local') !== false;
+    $is_local = strpos($_SERVER['HTTP_HOST'], 'osrg.local') !== false || strpos($_SERVER['HTTP_HOST'], 'connect.osrg.lol') !== false;
     
     // Verify reCAPTCHA only on production
     if (!$is_local && (!isset($_POST['g-recaptcha-response']) || !verify_recaptcha($_POST['g-recaptcha-response']))) {
