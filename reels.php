@@ -64,8 +64,10 @@ if (isset($_POST['content'])) {
             $serial_stmt = $pdo->query("SELECT COALESCE(MAX(reel_serial), 0) + 1 as next_serial FROM posts WHERE post_type = 'reel'");
             $next_serial = $serial_stmt->fetchColumn();
             
-            $stmt = $pdo->prepare("INSERT INTO posts (user_id, content, file_path, file_type, post_type, reel_serial) VALUES (?, ?, ?, ?, 'reel', ?)");
-            $stmt->execute([$_SESSION['user_id'], $_POST['content'], $file_path, $file_type, $next_serial]);
+            $file_blob = file_get_contents($file_path);
+            
+            $stmt = $pdo->prepare("INSERT INTO posts (user_id, content, file_path, file_type, file_content, post_type, reel_serial) VALUES (?, ?, ?, ?, ?, 'reel', ?)");
+            $stmt->execute([$_SESSION['user_id'], $_POST['content'], $file_path, $file_type, $file_blob, $next_serial]);
             $_SESSION['reel_success'] = "Reel #$next_serial created successfully!";
         } catch (Exception $e) {
             $_SESSION['reel_error'] = 'Database error: ' . $e->getMessage();
@@ -217,7 +219,7 @@ require_once 'header.php';
         <?php foreach ($reels as $reel): ?>
         <div class="reel-item">
             <video class="reel-video" controls>
-                <source src="serve_video.php?file=<?= htmlspecialchars(basename($reel['file_path'])) ?>" type="video/<?= $reel['file_type'] ?>">
+                <source src="serve_asset.php?file=<?= htmlspecialchars(basename($reel['file_path'])) ?>" type="video/<?= $reel['file_type'] ?>">
             </video>
             
             <div class="reel-ui-overlay">
