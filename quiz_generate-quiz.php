@@ -35,7 +35,12 @@ $options = [
         'header'  => "Content-Type: application/json\r\n",
         'method'  => 'POST',
         'content' => json_encode($payload),
-        'timeout' => 20
+        'timeout' => 20,
+        'ignore_errors' => true
+    ],
+    'ssl' => [
+        'verify_peer' => false,
+        'verify_peer_name' => false
     ]
 ];
 $context  = stream_context_create($options);
@@ -43,9 +48,10 @@ $result = file_get_contents($geminiUrl, false, $context);
 
 if ($result === FALSE) {
     http_response_code(500);
+    $error = error_get_last();
     echo json_encode([
-        'error' => 'Failed to contact Gemini API',
-        'debug' => error_get_last()
+        'error' => 'Failed to contact Gemini API: ' . ($error['message'] ?? 'Unknown error'),
+        'debug' => $error
     ]);
     exit;
 }
@@ -55,9 +61,15 @@ $response = json_decode($result, true);
 $quizJson = null;
 if (isset($response['candidates'][0]['content']['parts'][0]['text'])) {
     $text = $response['candidates'][0]['content']['parts'][0]['text'];
-    // Remove Markdown code block if present
-    $text = preg_replace('/^```json\\s*|```$/m', '', trim($text));
-    $quizJson = json_decode($text, true);
+    
+    // Attempt to extract JSON array
+    if (preg_match('/\[.*\]/s', $text, $matches)) {
+        $quizJson = json_decode($matches[0], true);
+    } else {
+        // Fallback: try decoding the whole text cleaning markdown
+        $cleaned_text = preg_replace('/^```json\s*|```$/m', '', trim($text));
+        $quizJson = json_decode($cleaned_text, true);
+    }
 }
 
 if (!$quizJson) {
