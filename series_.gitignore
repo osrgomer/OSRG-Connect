@@ -1,0 +1,30 @@
+# OAuth credentials - NEVER commit these!
+series_oauth.php
+
+# Database credentials - NEVER commit these!
+series_db.php
+
+# Environment files
+.env
+.env.local
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# User uploads
+uploads/avatars/*
+!uploads/avatars/.gitkeep
