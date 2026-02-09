@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg">
+    <!-- Sky -->
+    <rect width="400" height="200" fill="#87CEEB"/>
+    
+    <!-- Sun -->
+    <circle cx="50" cy="50" r="30" fill="#FFD700"/>
+    
+    <!-- Cloud 1 -->
+    <circle cx="150" cy="60" r="20" fill="white"/>
+    <circle cx="170" cy="60" r="20" fill="white"/>
+    <circle cx="160" cy="50" r="20" fill="white"/>
+    
+    <!-- Cloud 2 -->
+    <circle cx="280" cy="40" r="15" fill="white"/>
+    <circle cx="300" cy="40" r="15" fill="white"/>
+    <circle cx="290" cy="30" r="15" fill="white"/>
+    
+    <!-- Sand -->
+    <rect y="200" width="400" height="100" fill="#F4A460"/>
+    
+    <!-- Ocean -->
+    <path d="M0,200 Q200,180 400,200" fill="#1E90FF"/>
+    
+    <!-- Beach Ball -->
+    <circle cx="100" cy="250" r="15" fill="red"/>
+    <path d="M85,250 L115,250 M100,235 L100,265" stroke="white" stroke-width="2"/>
+    
+    <!-- Palm Tree -->
+    <rect x="300" y="150" width="20" height="70" fill="#8B4513"/>
+    <path d="M310,150 Q280,130 260,140" stroke="#228B22" stroke-width="10" fill="none"/>
+    <path d="M310,150 Q340,130 360,140" stroke="#228B22" stroke-width="10" fill="none"/>
+    <path d="M310,150 Q310,120 310,100" stroke="#228B22" stroke-width="10" fill="none"/>
+    
+    <!-- Bird -->
+    <path d="M200,80 Q210,70 220,80 Q230,70 240,80" stroke="black" fill="none"/>
+</svg>
