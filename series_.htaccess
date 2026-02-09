@@ -1,0 +1,40 @@
+RewriteEngine On
+RewriteBase /serieslist/
+
+# Force HTTPS (optional)
+# RewriteCond %{HTTPS} off
+# RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# Redirect series_index.php to clean URL
+RewriteCond %{THE_REQUEST} \s/serieslist/index\.php[?\s] [NC]
+RewriteRule ^index\.php$ /serieslist/ [R=301,L]
+
+# Handle directory index
+DirectoryIndex series_index.php
+
+# Pretty URLs - Remove .php extension
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME}.php -f
+RewriteRule ^([^/]+)/?$ $1.php [L]
+
+# Add Friends route
+RewriteRule ^friends/?$ series_friends.php [L,QSA]
+
+# Specific route mappings
+RewriteRule ^home/?$ series_index.php [L,QSA]
+RewriteRule ^library/?$ series_index.php [L,QSA]
+RewriteRule ^trivia/?$ series_trivia.php [L,QSA]
+RewriteRule ^quiz/?$ series_trivia.php [L,QSA]
+RewriteRule ^account/?$ series_account.php [L,QSA]
+RewriteRule ^profile/?$ series_account.php [L,QSA]
+RewriteRule ^settings/?$ series_account.php [L,QSA]
+RewriteRule ^voice/?$ tts/series_index.php [L,QSA]
+RewriteRule ^tts/?$ tts/series_index.php [L,QSA]
+RewriteRule ^login/?$ series_login.php [L,QSA]
+RewriteRule ^register/?$ series_register.php [L,QSA]
+RewriteRule ^logout/?$ series_logout.php [L,QSA]
+RewriteRule ^privacy/?$ series_privacy.php [L,QSA]
+
+# Show details route
+RewriteRule ^show/([0-9]+)/?$ series_index.php?view=show-detail&id=$1 [L,QSA]
