@@ -86,7 +86,7 @@ $is_authed = isset($_SESSION['authenticated']) && $_SESSION['authenticated'];
                 <p class="text-gray-500 text-[10px] font-bold uppercase tracking-[0.4em] mt-2 mono">Advanced Modding Intelligence Unit • 2026.v6</p>
             </div>
             <nav class="flex bg-gray-900/50 p-1.5 rounded-xl border border-gray-800 gap-1">
-                <a href=".." class="px-4 py-2 rounded-lg text-gray-400 font-bold text-sm hover:text-white transition-all flex items-center">
+                <a href="index.php" class="px-4 py-2 rounded-lg text-gray-400 font-bold text-sm hover:text-white transition-all flex items-center">
                     🏠 CONNECT
                 </a>
                 <button onclick="switchTab('finder')" id="btn-finder" class="px-6 py-2 rounded-lg bg-blue-600 text-white font-bold text-sm transition-all shadow-lg shadow-blue-900/20">DATABASE</button>

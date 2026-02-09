@@ -118,7 +118,7 @@
             </div>
             
             <div class="flex gap-4">
-                <a href="series_login.php" class="flex-1 bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold text-center hover:bg-indigo-700 transition">
+                <a href="login.php" class="flex-1 bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold text-center hover:bg-indigo-700 transition">
                     Go to Login
                 </a>
                 <a href="series_index.php" class="flex-1 bg-slate-600 text-white px-6 py-3 rounded-lg font-bold text-center hover:bg-slate-700 transition">

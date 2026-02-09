@@ -1,10 +1,12 @@
 <?php
 require_once 'config.php';
-init_db();
 
 $error = '';
 
 if ($_POST['username'] ?? false) {
+    $identifier = $_POST['username'];
+    $password = $_POST['password'];
+    
     // Check if we're on local environment
     $is_local = strpos($_SERVER['HTTP_HOST'], 'osrg.local') !== false;
     
@@ -12,46 +14,50 @@ if ($_POST['username'] ?? false) {
     if (!$is_local && (!isset($_POST['g-recaptcha-response']) || !verify_recaptcha($_POST['g-recaptcha-response']))) {
         $error = 'Security verification failed. Please try again.';
     } else {
+        // 1. Try Connect Platform Login (SQLite)
+        init_db();
         $pdo = get_db();
-    $stmt = $pdo->prepare("SELECT * FROM users WHERE username = ? OR email = ?");
-    $stmt->execute([$_POST['username'], $_POST['username']]);
-    $user = $stmt->fetch();
-    
-    
-    // Check both possible password field names for backward compatibility
-    $password_field = isset($user['password_hash']) ? $user['password_hash'] : $user['password'];
-    if ($user && password_verify($_POST['password'], $password_field)) {
-        if ($user['approved']) {
-            $_SESSION['user_id'] = $user['id'];
-            
-            // Handle Remember Me
-            if (isset($_POST['remember_me'])) {
-                $token = bin2hex(random_bytes(32));
-                $expires = time() + (30 * 24 * 60 * 60); // 30 days
+        $stmt = $pdo->prepare("SELECT * FROM users WHERE username = ? OR email = ?");
+        $stmt->execute([$identifier, $identifier]);
+        $user = $stmt->fetch();
+        
+        $password_field = isset($user['password_hash']) ? $user['password_hash'] : ($user['password'] ?? '');
+        
+        if ($user && password_verify($password, $password_field)) {
+            if ($user['approved']) {
+                $_SESSION['user_id'] = $user['id'];
                 
-                // Store token in database
-                try {
-                    $pdo->exec("CREATE TABLE IF NOT EXISTS remember_tokens (
-                        id INTEGER PRIMARY KEY,
-                        user_id INTEGER,
-                        token TEXT,
-                        expires INTEGER,
-                        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-                    )");
-                } catch (Exception $e) {}
+                // Handle Remember Me
+                if (isset($_POST['remember_me'])) {
+                    $token = bin2hex(random_bytes(32));
+                    $expires = time() + (30 * 24 * 60 * 60);
+                    $stmt = $pdo->prepare("INSERT INTO remember_tokens (user_id, token, expires) VALUES (?, ?, ?)");
+                    $stmt->execute([$user['id'], $token, $expires]);
+                    setcookie('remember_token', $token, $expires, '/', '', true, true);
+                }
                 
-                $stmt = $pdo->prepare("INSERT INTO remember_tokens (user_id, token, expires) VALUES (?, ?, ?)");
-                $stmt->execute([$user['id'], $token, $expires]);
-                
-                // Set cookie
-                setcookie('remember_token', $token, $expires, '/', '', true, true);
+                header('Location: index.php');
+                exit;
+            } else {
+                $error = 'Your account is pending approval.';
             }
-            
-            header('Location: index.php');
-            exit;
-        } else {
-            $error = 'Your account is pending approval.';
-        }
+        } 
+        // 2. Try SeriesList Login Fallback (MySQL)
+        elseif (file_exists('series_db.php')) {
+            require_once 'series_db.php';
+            $user_series = getUserByEmail($identifier);
+            if ($user_series && password_verify($password, $user_series['password'])) {
+                $_SESSION['user_logged_in'] = true;
+                $_SESSION['user_email'] = $user_series['email'];
+                $_SESSION['user_id'] = $user_series['id'];
+                $_SESSION['username'] = $user_series['email'];
+                $_SESSION['user_name'] = $user_series['username'];
+                updateLastActive($user_series['id']);
+                header('Location: series_index.php');
+                exit;
+            } else {
+                $error = 'Invalid username or password.';
+            }
         } else {
             $error = 'Invalid username or password.';
         }

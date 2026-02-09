@@ -53,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['image'])) {
     
     // Move file
     if (move_uploaded_file($file['tmp_name'], $uploadPath)) {
-        $imagePath = 'sp_uploads/admin/' . $filename;
+        $imagePath = 'series_uploads/admin/' . $filename;
         
         // Save to database with file type
         $stmt = $db->prepare("INSERT INTO admin_uploads (title, image_path, uploaded_by, file_type) VALUES (?, ?, ?, ?)");
