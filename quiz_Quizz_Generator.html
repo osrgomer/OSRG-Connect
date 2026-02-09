@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,15 +11,17 @@
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f0f2f5;
-            display: flex; 
+            display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             padding: 1rem;
         }
+
         .quiz-container {
             background-color: #ffffff;
-            border-radius: 1.5rem; /* More rounded corners */
+            border-radius: 1.5rem;
+            /* More rounded corners */
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
             width: 100%;
             max-width: 600px;
@@ -27,6 +30,7 @@
             flex-direction: column;
             gap: 1.5rem;
         }
+
         .question-text {
             font-size: 1.5rem;
             font-weight: 700;
@@ -34,41 +38,57 @@
             text-align: center;
             margin-bottom: 1.5rem;
         }
+
         .option-button {
-            background-color: #e0e7ff; /* Lighter blue */
-            color: #4338ca; /* Darker blue text */
+            background-color: #e0e7ff;
+            /* Lighter blue */
+            color: #4338ca;
+            /* Darker blue text */
             padding: 0.75rem 1.25rem;
-            border-radius: 0.75rem; /* Rounded corners for buttons */
+            border-radius: 0.75rem;
+            /* Rounded corners for buttons */
             font-size: 1.1rem;
             font-weight: 600;
             text-align: left;
             width: 100%;
             transition: all 0.2s ease-in-out;
             cursor: pointer;
-            border: 2px solid transparent; /* Border for selected state */
+            border: 2px solid transparent;
+            /* Border for selected state */
         }
+
         .option-button:hover {
-            background-color: #c7d2fe; /* Even lighter blue on hover */
+            background-color: #c7d2fe;
+            /* Even lighter blue on hover */
             transform: translateY(-2px);
         }
+
         .option-button.selected {
-            background-color: #4338ca; /* Dark blue when selected */
+            background-color: #4338ca;
+            /* Dark blue when selected */
             color: #ffffff;
-            border-color: #312e81; /* Darker border for selected */
+            border-color: #312e81;
+            /* Darker border for selected */
             box-shadow: 0 4px 10px rgba(67, 56, 202, 0.3);
         }
+
         .option-button.correct {
-            background-color: #22c55e; /* Green for correct */
+            background-color: #22c55e;
+            /* Green for correct */
             color: #ffffff;
             border-color: #16a34a;
         }
+
         .option-button.incorrect {
-            background-color: #ef4444; /* Red for incorrect */
+            background-color: #ef4444;
+            /* Red for incorrect */
             color: #ffffff;
             border-color: #dc2626;
         }
+
         .action-button {
-            background-color: #4f46e5; /* Primary action button */
+            background-color: #4f46e5;
+            /* Primary action button */
             color: #ffffff;
             padding: 0.85rem 1.75rem;
             border-radius: 0.75rem;
@@ -79,21 +99,25 @@
             cursor: pointer;
             box-shadow: 0 5px 15px rgba(79, 70, 229, 0.3);
         }
+
         .action-button:hover {
             background-color: #4338ca;
             transform: translateY(-2px);
         }
+
         .action-button:disabled {
             background-color: #9ca3af;
             cursor: not-allowed;
             box-shadow: none;
         }
+
         .results-container {
             text-align: center;
             font-size: 1.25rem;
             font-weight: 600;
             color: #333;
         }
+
         .message-box {
             position: fixed;
             top: 50%;
@@ -105,674 +129,648 @@
             border-radius: 0.75rem;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
             z-index: 1000;
-            display: none; /* Hidden by default */
+            display: none;
+            /* Hidden by default */
             font-size: 1.1rem;
         }
     </style>
 </head>
+
 <body>
     <div class="quiz-container">
-        <div id="login" class="text-center">
-            <h2 class="text-2xl font-bold mb-4">Quiz Access</h2>
-            <input type="text" id="username" placeholder="Username" class="w-full p-3 border rounded mb-3 text-lg">
-            <div class="relative mb-4">
-                <input type="password" id="password" placeholder="Password" class="w-full p-3 border rounded text-lg pr-12">
-                <button type="button" onclick="togglePassword()" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700">👁️</button>
+        <div id="quiz-content">
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-3xl font-extrabold text-gray-800">Quiz Generator</h1>
+                <button id="translate-btn" class="action-button w-auto px-4 py-2 ml-4">Translate to Hebrew</button>
             </div>
-            <button onclick="login()" class="action-button">Login</button>
-        </div>
-        <div id="quiz-content" style="display:none">
-        <div class="flex justify-between items-center mb-6">
-            <h1 class="text-3xl font-extrabold text-gray-800">Quiz Generator</h1>
-            <button id="translate-btn" class="action-button w-auto px-4 py-2 ml-4">Translate to Hebrew</button>
-        </div>
 
-        <!-- Quiz Generation UI -->
-        <div id="generator-area" class="mb-8">
-            <label for="quiz-topic" class="block text-lg font-semibold mb-2">Enter a quiz topic or prompt:</label>
-            <textarea id="quiz-topic" rows="2" class="w-full p-2 border rounded mb-4" placeholder="e.g. Marvel superheroes, World Capitals, Math for kids..."></textarea>
-            <button id="generate-btn" class="action-button mb-2">Generate New Quiz</button>
-            <div id="generation-status" class="text-center text-gray-500 mt-2" style="display:none;"></div>
-        </div>
+            <!-- Quiz Generation UI -->
+            <div id="generator-area" class="mb-8">
+                <label for="quiz-topic" class="block text-lg font-semibold mb-2">Enter a quiz topic or prompt:</label>
+                <textarea id="quiz-topic" rows="2" class="w-full p-2 border rounded mb-4"
+                    placeholder="e.g. Marvel superheroes, World Capitals, Math for kids..."></textarea>
+                <button id="generate-btn" class="action-button mb-2">Generate New Quiz</button>
+                <div id="generation-status" class="text-center text-gray-500 mt-2" style="display:none;"></div>
+            </div>
 
-        <h1 id="quiz-title" class="text-3xl font-extrabold text-center text-gray-800 mb-6">Playable Example: DC Comics Character Quiz</h1>
+            <h1 id="quiz-title" class="text-3xl font-extrabold text-center text-gray-800 mb-6">Playable Example: DC
+                Comics Character Quiz</h1>
 
-        <div id="quiz-area">
-            <p id="question-display" class="question-text"></p>
-            <div id="options-container" class="grid grid-cols-1 gap-4 mb-6">
+            <div id="quiz-area">
+                <p id="question-display" class="question-text"></p>
+                <div id="options-container" class="grid grid-cols-1 gap-4 mb-6">
                 </div>
-            <button id="submit-btn" class="action-button">Submit Answer</button>
+                <button id="submit-btn" class="action-button">Submit Answer</button>
+            </div>
+
+            <div id="results-area" class="results-container hidden">
+                <p id="score-display"></p>
+                <button id="restart-btn" class="action-button mt-6">Play Again</button>
+            </div>
+
+            <div class="flex justify-center gap-4 mt-8">
+                <button id="reload-btn" class="action-button w-1/2">Reload Page</button>
+                <a href=".." class="action-button w-1/2 text-center bg-gray-600 hover:bg-gray-700">Back to Connect</a>
+            </div>
         </div>
 
-        <div id="results-area" class="results-container hidden">
-            <p id="score-display"></p>
-            <button id="restart-btn" class="action-button mt-6">Play Again</button>
-        </div>
+        <div id="message-box" class="message-box"></div>
 
-        <div class="flex justify-center gap-4 mt-8">
-            <button id="reload-btn" class="action-button w-1/2">Reload Page</button>
-            <a href=".." class="action-button w-1/2 text-center bg-gray-600 hover:bg-gray-700">Back to Connect</a>
-        </div>
-        </div>
-
-    <div id="message-box" class="message-box"></div>
-
-    <script>
-        const users = {
-            'teacher': 'quiz2024',
-            'student': 'learn123',
-            'quiz_master': 'questions456'
-        };
-        
-        function togglePassword() {
-            const passwordField = document.getElementById('password');
-            passwordField.type = passwordField.type === 'password' ? 'text' : 'password';
-        }
-        
-        function login() {
-            const username = document.getElementById('username').value.trim();
-            const password = document.getElementById('password').value;
-            
-            if (users[username] && users[username] === password) {
-                document.getElementById('login').style.display = 'none';
-                document.getElementById('quiz-content').style.display = 'block';
-            } else {
-                alert('Invalid username or password!');
-            }
-        }
-        // Array of quiz questions
-        const initialQuizQuestions = [
-            {
-                question: "Who is Batman's alter ego?",
-                options: ["Clark Kent", "Bruce Wayne", "Barry Allen", "Hal Jordan"],
-                answer: "Bruce Wayne"
-            },
-            {
-                question: "What is Superman's home planet?",
-                options: ["Apokolips", "Themyscira", "Krypton", "Oa"],
-                answer: "Krypton"
-            },
-            {
-                question: "Who is Wonder Woman's mother?",
-                options: ["Hippolyta", "Artemis", "Circe", "Hera"],
-                answer: "Hippolyta"
-            },
-            {
-                question: "Who is The Flash's main adversary, known for his incredible speed?",
-                options: ["Lex Luthor", "Joker", "Reverse-Flash", "Deathstroke"],
-                answer: "Reverse-Flash"
-            },
-            {
-                question: "In which fictional city does Batman primarily operate?",
-                options: ["Metropolis", "Central City", "Star City", "Gotham City"],
-                answer: "Gotham City"
-            },
-            {
-                question: "Which villain is known as the 'Clown Prince of Crime' and is Batman's archnemesis?",
-                options: ["Riddler", "Penguin", "Two-Face", "Joker"],
-                answer: "Joker"
-            },
-            {
-                question: "What is the name of Aquaman's underwater kingdom?",
-                options: ["Atlantis", "Xebel", "Lemuria", "Aerie"],
-                answer: "Atlantis"
-            },
-            {
-                question: "Which Green Lantern was the first human member of the Green Lantern Corps?",
-                options: ["John Stewart", "Guy Gardner", "Kyle Rayner", "Hal Jordan"],
-                answer: "Hal Jordan"
-            },
-            {
-                question: "What is the name of the powerful artifact that grants the Green Lanterns their abilities?",
-                options: ["Cosmic Rod", "Power Ring", "Mother Box", "Nth Metal"],
-                answer: "Power Ring"
-            },
-            {
-                question: "Which member of the Justice League is an Amazonian princess?",
-                options: ["Supergirl", "Zatanna", "Hawkgirl", "Wonder Woman"],
-                answer: "Wonder Woman"
-            },
-            // Emoji + Emoji = DC Superhero Questions
-            {
-                question: "🦇 + 👨 = DC superhero",
-                options: ["Batman", "Superman", "Green Arrow", "Nightwing"],
-                answer: "Batman"
-            },
-            {
-                question: "🦸‍♀️ + 👑 = DC superhero",
-                options: ["Supergirl", "Wonder Woman", "Batgirl", "Zatanna"],
-                answer: "Wonder Woman"
-            },
-            {
-                question: "⚡ + 🏃‍♂️ = DC superhero",
-                options: ["Shazam", "Kid Flash", "The Flash", "Impulse"],
-                answer: "The Flash"
-            },
-            {
-                question: "🦈 + 🔱 = DC superhero",
-                options: ["King Shark", "Ocean Master", "Black Manta", "Aquaman"],
-                answer: "Aquaman"
-            },
-            {
-                question: "👽 + 🤖 = DC superhero",
-                options: ["Martian Manhunter", "Brainiac", "Cyborg", "Starfire"],
-                answer: "Cyborg"
-            },
-            // Emoji + Emoji = DC Supervillain Questions
-            {
-                question: "🤡 + 😂 = DC supervillain",
-                options: ["Riddler", "Joker", "Penguin", "Scarecrow"],
-                answer: "Joker"
-            },
-            {
-                question: "🧠 + 👨‍🦲 = DC supervillain",
-                options: ["Brainiac", "Lex Luthor", "Deathstroke", "Ra's al Ghul"],
-                answer: "Lex Luthor"
-            },
-            {
-                question: "🧊 + ❄️ = DC supervillain",
-                options: ["Captain Cold", "Killer Frost", "Mr. Freeze", "Icicle"],
-                answer: "Mr. Freeze"
-            },
-            {
-                question: "🌿 + 🌸 = DC supervillain",
-                options: ["Poison Ivy", "Cheetah", "Harley Quinn", "Catwoman"],
-                answer: "Poison Ivy"
-            },
-            {
-                question: "💰 + 🐧 = DC supervillain",
-                options: ["Two-Face", "Penguin", "Black Mask", "Hush"],
-                answer: "Penguin"
-            },
-            // Previously Added Questions
-            {
-                question: "Who is Barry Allen's love interest and a journalist?",
-                options: ["Lois Lane", "Iris West", "Felicity Smoak", "Catwoman"],
-                answer: "Iris West"
-            },
-            {
-                question: "Which detective is often a father figure to Barry Allen in The Flash comics/show?",
-                options: ["Commissioner Gordon", "Harvey Bullock", "Joe West", "Captain Singh"],
-                answer: "Joe West"
-            },
-            {
-                question: "Which speedster is known as Kid Flash and later takes on the mantle of The Flash?",
-                options: ["Jay Garrick", "Bart Allen", "Wally West", "Jesse Quick"],
-                answer: "Wally West"
-            },
-            {
-                question: "Who is the villainous speedster known for his black suit and terrifying voice, often a nemesis to The Flash?",
-                options: ["Godspeed", "Savitar", "Zoom", "Reverse-Flash"],
-                answer: "Zoom"
-            },
-            {
-                question: "Which magical superheroine casts spells by speaking backwards?",
-                options: ["Raven", "Zatara", "Zatanna", "Madame Xanadu"],
-                answer: "Zatanna"
-            },
-            {
-                question: "Which vigilante hero is a master archer and operates out of Star City?",
-                options: ["Hawkeye", "Red Arrow", "Green Arrow", "Arsenal"],
-                answer: "Green Arrow"
-            },
-            // Questions about Titans/Teen Titans and related characters
-            {
-                question: "What is the name of the superhero team primarily composed of teenage sidekicks?",
-                options: ["Justice League", "Justice Society", "Teen Titans", "Young Justice"],
-                answer: "Teen Titans"
-            },
-            {
-                question: "Which stretching hero gained his powers from a chemical accident involving 'Gingold'?",
-                options: ["Mr. Fantastic", "Plastic Man", "Elongated Man", "Elastic Lad"],
-                answer: "Elongated Man"
-            },
-            {
-                question: "Who is the shape-shifting hero of the Titans team, often turning into various animals?",
-                options: ["Changeling", "Vixen", "Animal Man", "Beast Boy"],
-                answer: "Beast Boy"
-            },
-            {
-                question: "What is the superhero identity of Dick Grayson after he stops being Robin?",
-                options: ["Red Hood", "Robin (Tim Drake)", "Nightwing", "Agent 37"],
-                answer: "Nightwing"
-            },
-            {
-                question: "Which telepathic Martian is a member of the Titans team and often struggles with human customs?",
-                options: ["Martian Manhunter", "M'gann M'orzz", "Miss Martian", "White Martian"],
-                answer: "Miss Martian"
-            },
-            {
-                question: "Which super-intelligent gorilla is a major enemy of The Flash?",
-                options: ["Solovar", "Grodd", "Ultra-Humanite", "King Kong"],
-                answer: "Grodd"
-            },
-            {
-                question: "Who is Aquaman's sidekick and protégé, often a member of the Teen Titans?",
-                options: ["Tempest", "Ocean Master", "Garth", "Aqualad"],
-                answer: "Aqualad"
-            },
-            {
-                question: "Which hero can generate and manipulate electricity, often protecting the city of Freeland?",
-                options: ["Static Shock", "Livewire", "Black Lightning", "Electro"],
-                answer: "Black Lightning"
-            },
-            {
-                question: "Who are the daughters of Black Lightning, both with powers related to light and sound?",
-                options: ["Vixen & Gypsy", "Thunder & Lightning", "Fire & Ice", "Starfire & Raven"],
-                answer: "Thunder & Lightning"
-            },
-            {
-                question: "Which comedic hero has elasticity and shapeshifting powers, often breaking the fourth wall?",
-                options: ["Elongated Man", "Mister Fantastic", "Plastic Man", "Stretch Armstrong"],
-                answer: "Plastic Man"
-            },
-            // Questions based on the provided image (Titans lineup)
-            {
-                question: "Which Titans team member is the tech guru and a heavy hitter, known as Steel?",
-                options: ["John Henry Irons", "Natasha Irons", "Victor Stone", "Ryan Choi"],
-                answer: "Natasha Irons"
-            },
-            {
-                question: "Which Amazonian warrior is a highly trained Super Hero and a member of the Titans team?",
-                options: ["Artemis", "Cassie Sandsmark", "Donna Troy", "Nubia"],
-                answer: "Donna Troy"
-            },
-            {
-                question: "Which empath and magic-user is the daughter of a demon and a member of the Titans team?",
-                options: ["Starfire", "Terra", "Raven", "Jinx"],
-                answer: "Raven"
-            },
-            // Questions based on the provided image (Teen Titans lineup)
-            {
-                question: "Which powerful genie, 4,000 years old, is a member of the Teen Titans?",
-                options: ["Raven", "Starfire", "Djinn", "Wonder Girl"],
-                answer: "Djinn"
-            },
-            {
-                question: "Which new Teen Titans member is a human wrecking ball and social media star?",
-                options: ["Kid Devil", "Gizmo", "Roundhouse", "Mammoth"],
-                answer: "Roundhouse"
-            },
-            {
-                question: "Who is the son of Batman and sometimes a difficult leader of the Teen Titans?",
-                options: ["Dick Grayson", "Jason Todd", "Tim Drake", "Damian Wayne"],
-                answer: "Damian Wayne"
-            },
-            {
-                question: "Who is Green Arrow's half-sister and a highly trained assassin, also known as Red Arrow in the Teen Titans?",
-                options: ["Mia Dearden", "Roy Harper", "Emiko Queen", "Artemis Crock"],
-                answer: "Emiko Queen"
-            },
-            {
-                question: "Which half-human, half-alien Teen Titans member has the same superpowers as her father, Lobo?",
-                options: ["Starfire", "Blackfire", "Crush", "Terra"],
-                answer: "Crush"
-            },
-            {
-                question: "Which Kid Flash is trying to forge a legacy of his own in the Teen Titans?",
-                options: ["Wally West", "Bart Allen", "Jesse Quick", "Wallace R. West"],
-                answer: "Wallace R. West"
-            },
-            // Questions about the Forces
-            {
-                question: "In the DC Universe, what collective term refers to fundamental forces like the Speed Force, Still Force, Strength Force, and Sage Force?",
-                options: ["Elemental Forces", "Cosmic Energies", "The Great Powers", "The Forces of the Universe"],
-                answer: "The Forces of the Universe"
-            },
-            // Questions about Vandal Savage and Mera
-            {
-                question: "Which immortal DC villain has been alive for tens of thousands of years, often clashing with heroes across history?",
-                options: ["Ra's al Ghul", "Solomon Grundy", "Vandal Savage", "Per Degaton"],
-                answer: "Vandal Savage"
-            },
-            {
-                question: "Who is the Queen of Atlantis and Aquaman's powerful wife, known for her hydrokinetic abilities?",
-                options: ["Dolphin", "Tula", "Mera", "Lorena Marquez"],
-                answer: "Mera"
-            },
-            // New questions from the comprehensive list
-            {
-                question: "Who is the Greek God of War and a frequent adversary of Wonder Woman?",
-                options: ["Zeus", "Hades", "Ares", "Poseidon"],
-                answer: "Ares"
-            },
-            {
-                question: "Which hero can shrink to subatomic sizes and manipulate his mass, often using a specialized suit?",
-                options: ["Ant-Man", "Shrinking Violet", "The Atom", "Micro-Man"],
-                answer: "The Atom"
-            },
-            {
-                question: "Which brutal villain famously broke Batman's back, empowering himself with the venom drug?",
-                options: ["Killer Croc", "Scarecrow", "Bane", "Two-Face"],
-                answer: "Bane"
-            },
-            {
-                question: "Who is the highly skilled vigilante who often operates as Batgirl, known for her intelligence and martial arts?",
-                options: ["Selina Kyle", "Helena Bertinelli", "Barbara Gordon", "Cassandra Cain"],
-                answer: "Barbara Gordon"
-            },
-            {
-                question: "Which powerful New God warrior, a former Female Fury, wields a Mega-Rod and is married to Mister Miracle?",
-                options: ["Granny Goodness", "Lashina", "Big Barda", "Stompa"],
-                answer: "Big Barda"
-            },
-            {
-                question: "Who is Superman's imperfect Bizarro World counterpart, often speaking in opposites?",
-                options: ["General Zod", "Doomsday", "Brainiac", "Bizarro"],
-                answer: "Bizarro"
-            },
-            {
-                question: "Which ancient ruler gains powers similar to Shazam through the wizard Shazam, but uses them for selfish means?",
-                options: ["Black Manta", "Sinestro", "Black Adam", "Deathstroke"],
-                answer: "Black Adam"
-            },
-            {
-                question: "Which superheroine possesses a powerful 'Canary Cry' and is a skilled martial artist?",
-                options: ["Vixen", "Hawkgirl", "Black Canary", "Huntress"],
-                answer: "Black Canary"
-            },
-            {
-                question: "Who is Aquaman's archnemesis, known for his high-tech suit and obsession with Atlantean technology?",
-                options: ["Ocean Master", "King Shark", "Black Manta", "The Trench"],
-                answer: "Black Manta"
-            },
-            {
-                question: "Which hero, often associated with the Justice League, gains powers from the Quantum Field and can absorb and release energy?",
-                options: ["Captain Marvel", "Firestorm", "Captain Atom", "Blue Marvel"],
-                answer: "Captain Atom"
-            },
-            {
-                question: "Who is the Australian villain known for his trick boomerangs, often a member of the Rogues or Suicide Squad?",
-                options: ["Mirror Master", "Trickster", "Captain Boomerang", "Weather Wizard"],
-                answer: "Captain Boomerang"
-            },
-            {
-                question: "Which ancient sorceress is a powerful enemy of Wonder Woman, known for transforming others into animals?",
-                options: ["Medusa", "Giganta", "Circe", "Silver Swan"],
-                answer: "Circe"
-            },
-            {
-                question: "Which shape-shifting Batman villain can transform into a clay-like substance?",
-                options: ["Man-Bat", "Killer Croc", "Clayface", "Solomon Grundy"],
-                answer: "Clayface"
-            },
-            {
-                question: "Who is the tyrannical ruler of Apokolips and one of the most powerful villains in the DC Universe?",
-                options: ["Brainiac", "Mongul", "Darkseid", "Thanos"],
-                answer: "Darkseid"
-            },
-            {
-                question: "Which master assassin and mercenary is known for his incredible accuracy with firearms?",
-                options: ["Deathstroke", "Red Hood", "Deadshot", "Prometheus"],
-                answer: "Deadshot"
-            },
-            {
-                question: "Which rhyming demon is bound to a human host, often appearing as Jason Blood?",
-                options: ["Neron", "Trigon", "The Demon", "Azazel"],
-                answer: "The Demon"
-            },
-            {
-                question: "Which powerful telepathic alien conqueror is a major adversary of the Justice League?",
-                options: ["Starro", "Mongul", "Despero", "Parallax"],
-                answer: "Despero"
-            },
-            {
-                question: "Which mystical hero wears the Helmet of Nabu and is one of the most powerful magic-users in the DC Universe?",
-                options: ["Zatanna", "Shazam", "Doctor Fate", "John Constantine"],
-                answer: "Doctor Fate"
-            },
-            {
-                question: "What is the name of the team of misfits and outcasts, including Robotman and Negative Man, who are often considered superheroes?",
-                options: ["Justice League Dark", "The Outsiders", "Doom Patrol", "Justice Society"],
-                answer: "Doom Patrol"
-            },
-            {
-                question: "Which winged hero, originally a World War II ace pilot, leads a squadron known as the Blackhawks?",
-                options: ["Hawkman", "Red Tornado", "Blackhawk", "Captain Comet"],
-                answer: "Blackhawk"
-            },
-            {
-                question: "Which hero, often associated with the Justice League or Titans, can shrink and fly, and is married to Bumblebee?",
-                options: ["The Atom", "Ant-Man", "Bumblebee", "Atom Smasher"],
-                answer: "Bumblebee"
-            },
-            {
-                question: "Which time-traveling hero from the future uses his knowledge of history to gain fame and fortune, often with his robot sidekick Skeets?",
-                options: ["Rip Hunter", "Waverider", "Booster Gold", "The Ray"],
-                answer: "Booster Gold"
-            },
-            {
-                question: "Which hero uses a symbiotic alien scarab to transform into a powerful armored suit, often associated with the Teen Titans or Justice League?",
-                options: ["Green Lantern", "Iron Man", "Blue Beetle", "Steel"],
-                answer: "Blue Beetle"
-            }
-        ];
-
-        let quizQuestions = []; // This will hold the shuffled questions
-        let currentQuestionIndex = 0;
-        let score = 0;
-        let selectedOption = null;
-        let quizActive = true; // To prevent multiple submissions
-
-        // Get DOM elements
-        const questionDisplay = document.getElementById('question-display');
-        const optionsContainer = document.getElementById('options-container');
-        const submitButton = document.getElementById('submit-btn');
-        const quizArea = document.getElementById('quiz-area');
-        const resultsArea = document.getElementById('results-area');
-        const scoreDisplay = document.getElementById('score-display');
-        const restartButton = document.getElementById('restart-btn');
-        const messageBox = document.getElementById('message-box');
-        // New for generator
-        const generatorArea = document.getElementById('generator-area');
-        const generateBtn = document.getElementById('generate-btn');
-        const quizTopic = document.getElementById('quiz-topic');
-        const generationStatus = document.getElementById('generation-status');
-
-        /**
-         * Shuffles an array in place using the Fisher-Yates (Knuth) algorithm.
-         * @param {Array} array - The array to shuffle.
-         */
-        function shuffleArray(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]]; // Swap elements
-            }
-        }
-
-        /**
-         * Displays a temporary message to the user.
-         * @param {string} message - The message to display.
-         * @param {number} duration - The duration in milliseconds for the message to be visible.
-         */
-        function showMessage(message, duration = 2000) {
-            messageBox.textContent = message;
-            messageBox.style.display = 'block';
-            setTimeout(() => {
-                messageBox.style.display = 'none';
-            }, duration);
-        }
-
-        /**
-         * Loads and displays the current question and its options.
-         */
-        function loadQuestion() {
-            quizActive = true; // Reset quiz active state for new question
-            selectedOption = null; // Clear previous selection
-            submitButton.disabled = true; // Disable submit until an option is selected
-
-            if (currentQuestionIndex < quizQuestions.length) {
-                const question = quizQuestions[currentQuestionIndex];
-                questionDisplay.textContent = question.question;
-                optionsContainer.innerHTML = ''; // Clear previous options
-
-                // Shuffle options for the current question
-                const shuffledOptions = [...question.options];
-                shuffleArray(shuffledOptions);
-
-                shuffledOptions.forEach(option => {
-                    const button = document.createElement('button');
-                    button.textContent = option;
-                    button.classList.add('option-button');
-                    button.addEventListener('click', () => selectOption(button, option));
-                    optionsContainer.appendChild(button);
-                });
-            } else {
-                showResults();
-            }
-        }
-
-        /**
-         * Handles the selection of an answer option.
-         * @param {HTMLButtonElement} clickedButton - The button element that was clicked.
-         * @param {string} optionText - The text content of the selected option.
-         */
-        function selectOption(clickedButton, optionText) {
-            // Remove 'selected' class from all buttons first
-            document.querySelectorAll('.option-button').forEach(btn => {
-                btn.classList.remove('selected');
-            });
-
-            // Add 'selected' class to the clicked button
-            clickedButton.classList.add('selected');
-            selectedOption = optionText;
-            submitButton.disabled = false; // Enable submit button
-        }
-
-        /**
-         * Checks the selected answer against the correct answer and updates the score.
-         * Highlights correct/incorrect answers.
-         */
-        function checkAnswer() {
-            if (!quizActive) return; // Prevent double submission
-            quizActive = false; // Disable further submissions for this question
-
-            if (selectedOption === null) {
-                showMessage("Please select an answer before submitting.");
-                quizActive = true; // Re-enable if no option was selected
-                return;
-            }
-
-            const currentQuestion = quizQuestions[currentQuestionIndex];
-            const correctOption = currentQuestion.answer;
-
-            document.querySelectorAll('.option-button').forEach(button => {
-                button.disabled = true; // Disable all options after submission
-
-                if (button.textContent === correctOption) {
-                    button.classList.add('correct');
-                } else if (button.classList.contains('selected') && button.textContent !== correctOption) {
-                    button.classList.add('incorrect');
+        <script>
+            // Array of quiz questions
+            const initialQuizQuestions = [
+                {
+                    question: "Who is Batman's alter ego?",
+                    options: ["Clark Kent", "Bruce Wayne", "Barry Allen", "Hal Jordan"],
+                    answer: "Bruce Wayne"
+                },
+                {
+                    question: "What is Superman's home planet?",
+                    options: ["Apokolips", "Themyscira", "Krypton", "Oa"],
+                    answer: "Krypton"
+                },
+                {
+                    question: "Who is Wonder Woman's mother?",
+                    options: ["Hippolyta", "Artemis", "Circe", "Hera"],
+                    answer: "Hippolyta"
+                },
+                {
+                    question: "Who is The Flash's main adversary, known for his incredible speed?",
+                    options: ["Lex Luthor", "Joker", "Reverse-Flash", "Deathstroke"],
+                    answer: "Reverse-Flash"
+                },
+                {
+                    question: "In which fictional city does Batman primarily operate?",
+                    options: ["Metropolis", "Central City", "Star City", "Gotham City"],
+                    answer: "Gotham City"
+                },
+                {
+                    question: "Which villain is known as the 'Clown Prince of Crime' and is Batman's archnemesis?",
+                    options: ["Riddler", "Penguin", "Two-Face", "Joker"],
+                    answer: "Joker"
+                },
+                {
+                    question: "What is the name of Aquaman's underwater kingdom?",
+                    options: ["Atlantis", "Xebel", "Lemuria", "Aerie"],
+                    answer: "Atlantis"
+                },
+                {
+                    question: "Which Green Lantern was the first human member of the Green Lantern Corps?",
+                    options: ["John Stewart", "Guy Gardner", "Kyle Rayner", "Hal Jordan"],
+                    answer: "Hal Jordan"
+                },
+                {
+                    question: "What is the name of the powerful artifact that grants the Green Lanterns their abilities?",
+                    options: ["Cosmic Rod", "Power Ring", "Mother Box", "Nth Metal"],
+                    answer: "Power Ring"
+                },
+                {
+                    question: "Which member of the Justice League is an Amazonian princess?",
+                    options: ["Supergirl", "Zatanna", "Hawkgirl", "Wonder Woman"],
+                    answer: "Wonder Woman"
+                },
+                // Emoji + Emoji = DC Superhero Questions
+                {
+                    question: "🦇 + 👨 = DC superhero",
+                    options: ["Batman", "Superman", "Green Arrow", "Nightwing"],
+                    answer: "Batman"
+                },
+                {
+                    question: "🦸‍♀️ + 👑 = DC superhero",
+                    options: ["Supergirl", "Wonder Woman", "Batgirl", "Zatanna"],
+                    answer: "Wonder Woman"
+                },
+                {
+                    question: "⚡ + 🏃‍♂️ = DC superhero",
+                    options: ["Shazam", "Kid Flash", "The Flash", "Impulse"],
+                    answer: "The Flash"
+                },
+                {
+                    question: "🦈 + 🔱 = DC superhero",
+                    options: ["King Shark", "Ocean Master", "Black Manta", "Aquaman"],
+                    answer: "Aquaman"
+                },
+                {
+                    question: "👽 + 🤖 = DC superhero",
+                    options: ["Martian Manhunter", "Brainiac", "Cyborg", "Starfire"],
+                    answer: "Cyborg"
+                },
+                // Emoji + Emoji = DC Supervillain Questions
+                {
+                    question: "🤡 + 😂 = DC supervillain",
+                    options: ["Riddler", "Joker", "Penguin", "Scarecrow"],
+                    answer: "Joker"
+                },
+                {
+                    question: "🧠 + 👨‍🦲 = DC supervillain",
+                    options: ["Brainiac", "Lex Luthor", "Deathstroke", "Ra's al Ghul"],
+                    answer: "Lex Luthor"
+                },
+                {
+                    question: "🧊 + ❄️ = DC supervillain",
+                    options: ["Captain Cold", "Killer Frost", "Mr. Freeze", "Icicle"],
+                    answer: "Mr. Freeze"
+                },
+                {
+                    question: "🌿 + 🌸 = DC supervillain",
+                    options: ["Poison Ivy", "Cheetah", "Harley Quinn", "Catwoman"],
+                    answer: "Poison Ivy"
+                },
+                {
+                    question: "💰 + 🐧 = DC supervillain",
+                    options: ["Two-Face", "Penguin", "Black Mask", "Hush"],
+                    answer: "Penguin"
+                },
+                // Previously Added Questions
+                {
+                    question: "Who is Barry Allen's love interest and a journalist?",
+                    options: ["Lois Lane", "Iris West", "Felicity Smoak", "Catwoman"],
+                    answer: "Iris West"
+                },
+                {
+                    question: "Which detective is often a father figure to Barry Allen in The Flash comics/show?",
+                    options: ["Commissioner Gordon", "Harvey Bullock", "Joe West", "Captain Singh"],
+                    answer: "Joe West"
+                },
+                {
+                    question: "Which speedster is known as Kid Flash and later takes on the mantle of The Flash?",
+                    options: ["Jay Garrick", "Bart Allen", "Wally West", "Jesse Quick"],
+                    answer: "Wally West"
+                },
+                {
+                    question: "Who is the villainous speedster known for his black suit and terrifying voice, often a nemesis to The Flash?",
+                    options: ["Godspeed", "Savitar", "Zoom", "Reverse-Flash"],
+                    answer: "Zoom"
+                },
+                {
+                    question: "Which magical superheroine casts spells by speaking backwards?",
+                    options: ["Raven", "Zatara", "Zatanna", "Madame Xanadu"],
+                    answer: "Zatanna"
+                },
+                {
+                    question: "Which vigilante hero is a master archer and operates out of Star City?",
+                    options: ["Hawkeye", "Red Arrow", "Green Arrow", "Arsenal"],
+                    answer: "Green Arrow"
+                },
+                // Questions about Titans/Teen Titans and related characters
+                {
+                    question: "What is the name of the superhero team primarily composed of teenage sidekicks?",
+                    options: ["Justice League", "Justice Society", "Teen Titans", "Young Justice"],
+                    answer: "Teen Titans"
+                },
+                {
+                    question: "Which stretching hero gained his powers from a chemical accident involving 'Gingold'?",
+                    options: ["Mr. Fantastic", "Plastic Man", "Elongated Man", "Elastic Lad"],
+                    answer: "Elongated Man"
+                },
+                {
+                    question: "Who is the shape-shifting hero of the Titans team, often turning into various animals?",
+                    options: ["Changeling", "Vixen", "Animal Man", "Beast Boy"],
+                    answer: "Beast Boy"
+                },
+                {
+                    question: "What is the superhero identity of Dick Grayson after he stops being Robin?",
+                    options: ["Red Hood", "Robin (Tim Drake)", "Nightwing", "Agent 37"],
+                    answer: "Nightwing"
+                },
+                {
+                    question: "Which telepathic Martian is a member of the Titans team and often struggles with human customs?",
+                    options: ["Martian Manhunter", "M'gann M'orzz", "Miss Martian", "White Martian"],
+                    answer: "Miss Martian"
+                },
+                {
+                    question: "Which super-intelligent gorilla is a major enemy of The Flash?",
+                    options: ["Solovar", "Grodd", "Ultra-Humanite", "King Kong"],
+                    answer: "Grodd"
+                },
+                {
+                    question: "Who is Aquaman's sidekick and protégé, often a member of the Teen Titans?",
+                    options: ["Tempest", "Ocean Master", "Garth", "Aqualad"],
+                    answer: "Aqualad"
+                },
+                {
+                    question: "Which hero can generate and manipulate electricity, often protecting the city of Freeland?",
+                    options: ["Static Shock", "Livewire", "Black Lightning", "Electro"],
+                    answer: "Black Lightning"
+                },
+                {
+                    question: "Who are the daughters of Black Lightning, both with powers related to light and sound?",
+                    options: ["Vixen & Gypsy", "Thunder & Lightning", "Fire & Ice", "Starfire & Raven"],
+                    answer: "Thunder & Lightning"
+                },
+                {
+                    question: "Which comedic hero has elasticity and shapeshifting powers, often breaking the fourth wall?",
+                    options: ["Elongated Man", "Mister Fantastic", "Plastic Man", "Stretch Armstrong"],
+                    answer: "Plastic Man"
+                },
+                // Questions based on the provided image (Titans lineup)
+                {
+                    question: "Which Titans team member is the tech guru and a heavy hitter, known as Steel?",
+                    options: ["John Henry Irons", "Natasha Irons", "Victor Stone", "Ryan Choi"],
+                    answer: "Natasha Irons"
+                },
+                {
+                    question: "Which Amazonian warrior is a highly trained Super Hero and a member of the Titans team?",
+                    options: ["Artemis", "Cassie Sandsmark", "Donna Troy", "Nubia"],
+                    answer: "Donna Troy"
+                },
+                {
+                    question: "Which empath and magic-user is the daughter of a demon and a member of the Titans team?",
+                    options: ["Starfire", "Terra", "Raven", "Jinx"],
+                    answer: "Raven"
+                },
+                // Questions based on the provided image (Teen Titans lineup)
+                {
+                    question: "Which powerful genie, 4,000 years old, is a member of the Teen Titans?",
+                    options: ["Raven", "Starfire", "Djinn", "Wonder Girl"],
+                    answer: "Djinn"
+                },
+                {
+                    question: "Which new Teen Titans member is a human wrecking ball and social media star?",
+                    options: ["Kid Devil", "Gizmo", "Roundhouse", "Mammoth"],
+                    answer: "Roundhouse"
+                },
+                {
+                    question: "Who is the son of Batman and sometimes a difficult leader of the Teen Titans?",
+                    options: ["Dick Grayson", "Jason Todd", "Tim Drake", "Damian Wayne"],
+                    answer: "Damian Wayne"
+                },
+                {
+                    question: "Who is Green Arrow's half-sister and a highly trained assassin, also known as Red Arrow in the Teen Titans?",
+                    options: ["Mia Dearden", "Roy Harper", "Emiko Queen", "Artemis Crock"],
+                    answer: "Emiko Queen"
+                },
+                {
+                    question: "Which half-human, half-alien Teen Titans member has the same superpowers as her father, Lobo?",
+                    options: ["Starfire", "Blackfire", "Crush", "Terra"],
+                    answer: "Crush"
+                },
+                {
+                    question: "Which Kid Flash is trying to forge a legacy of his own in the Teen Titans?",
+                    options: ["Wally West", "Bart Allen", "Jesse Quick", "Wallace R. West"],
+                    answer: "Wallace R. West"
+                },
+                // Questions about the Forces
+                {
+                    question: "In the DC Universe, what collective term refers to fundamental forces like the Speed Force, Still Force, Strength Force, and Sage Force?",
+                    options: ["Elemental Forces", "Cosmic Energies", "The Great Powers", "The Forces of the Universe"],
+                    answer: "The Forces of the Universe"
+                },
+                // Questions about Vandal Savage and Mera
+                {
+                    question: "Which immortal DC villain has been alive for tens of thousands of years, often clashing with heroes across history?",
+                    options: ["Ra's al Ghul", "Solomon Grundy", "Vandal Savage", "Per Degaton"],
+                    answer: "Vandal Savage"
+                },
+                {
+                    question: "Who is the Queen of Atlantis and Aquaman's powerful wife, known for her hydrokinetic abilities?",
+                    options: ["Dolphin", "Tula", "Mera", "Lorena Marquez"],
+                    answer: "Mera"
+                },
+                // New questions from the comprehensive list
+                {
+                    question: "Who is the Greek God of War and a frequent adversary of Wonder Woman?",
+                    options: ["Zeus", "Hades", "Ares", "Poseidon"],
+                    answer: "Ares"
+                },
+                {
+                    question: "Which hero can shrink to subatomic sizes and manipulate his mass, often using a specialized suit?",
+                    options: ["Ant-Man", "Shrinking Violet", "The Atom", "Micro-Man"],
+                    answer: "The Atom"
+                },
+                {
+                    question: "Which brutal villain famously broke Batman's back, empowering himself with the venom drug?",
+                    options: ["Killer Croc", "Scarecrow", "Bane", "Two-Face"],
+                    answer: "Bane"
+                },
+                {
+                    question: "Who is the highly skilled vigilante who often operates as Batgirl, known for her intelligence and martial arts?",
+                    options: ["Selina Kyle", "Helena Bertinelli", "Barbara Gordon", "Cassandra Cain"],
+                    answer: "Barbara Gordon"
+                },
+                {
+                    question: "Which powerful New God warrior, a former Female Fury, wields a Mega-Rod and is married to Mister Miracle?",
+                    options: ["Granny Goodness", "Lashina", "Big Barda", "Stompa"],
+                    answer: "Big Barda"
+                },
+                {
+                    question: "Who is Superman's imperfect Bizarro World counterpart, often speaking in opposites?",
+                    options: ["General Zod", "Doomsday", "Brainiac", "Bizarro"],
+                    answer: "Bizarro"
+                },
+                {
+                    question: "Which ancient ruler gains powers similar to Shazam through the wizard Shazam, but uses them for selfish means?",
+                    options: ["Black Manta", "Sinestro", "Black Adam", "Deathstroke"],
+                    answer: "Black Adam"
+                },
+                {
+                    question: "Which superheroine possesses a powerful 'Canary Cry' and is a skilled martial artist?",
+                    options: ["Vixen", "Hawkgirl", "Black Canary", "Huntress"],
+                    answer: "Black Canary"
+                },
+                {
+                    question: "Who is Aquaman's archnemesis, known for his high-tech suit and obsession with Atlantean technology?",
+                    options: ["Ocean Master", "King Shark", "Black Manta", "The Trench"],
+                    answer: "Black Manta"
+                },
+                {
+                    question: "Which hero, often associated with the Justice League, gains powers from the Quantum Field and can absorb and release energy?",
+                    options: ["Captain Marvel", "Firestorm", "Captain Atom", "Blue Marvel"],
+                    answer: "Captain Atom"
+                },
+                {
+                    question: "Who is the Australian villain known for his trick boomerangs, often a member of the Rogues or Suicide Squad?",
+                    options: ["Mirror Master", "Trickster", "Captain Boomerang", "Weather Wizard"],
+                    answer: "Captain Boomerang"
+                },
+                {
+                    question: "Which ancient sorceress is a powerful enemy of Wonder Woman, known for transforming others into animals?",
+                    options: ["Medusa", "Giganta", "Circe", "Silver Swan"],
+                    answer: "Circe"
+                },
+                {
+                    question: "Which shape-shifting Batman villain can transform into a clay-like substance?",
+                    options: ["Man-Bat", "Killer Croc", "Clayface", "Solomon Grundy"],
+                    answer: "Clayface"
+                },
+                {
+                    question: "Who is the tyrannical ruler of Apokolips and one of the most powerful villains in the DC Universe?",
+                    options: ["Brainiac", "Mongul", "Darkseid", "Thanos"],
+                    answer: "Darkseid"
+                },
+                {
+                    question: "Which master assassin and mercenary is known for his incredible accuracy with firearms?",
+                    options: ["Deathstroke", "Red Hood", "Deadshot", "Prometheus"],
+                    answer: "Deadshot"
+                },
+                {
+                    question: "Which rhyming demon is bound to a human host, often appearing as Jason Blood?",
+                    options: ["Neron", "Trigon", "The Demon", "Azazel"],
+                    answer: "The Demon"
+                },
+                {
+                    question: "Which powerful telepathic alien conqueror is a major adversary of the Justice League?",
+                    options: ["Starro", "Mongul", "Despero", "Parallax"],
+                    answer: "Despero"
+                },
+                {
+                    question: "Which mystical hero wears the Helmet of Nabu and is one of the most powerful magic-users in the DC Universe?",
+                    options: ["Zatanna", "Shazam", "Doctor Fate", "John Constantine"],
+                    answer: "Doctor Fate"
+                },
+                {
+                    question: "What is the name of the team of misfits and outcasts, including Robotman and Negative Man, who are often considered superheroes?",
+                    options: ["Justice League Dark", "The Outsiders", "Doom Patrol", "Justice Society"],
+                    answer: "Doom Patrol"
+                },
+                {
+                    question: "Which winged hero, originally a World War II ace pilot, leads a squadron known as the Blackhawks?",
+                    options: ["Hawkman", "Red Tornado", "Blackhawk", "Captain Comet"],
+                    answer: "Blackhawk"
+                },
+                {
+                    question: "Which hero, often associated with the Justice League or Titans, can shrink and fly, and is married to Bumblebee?",
+                    options: ["The Atom", "Ant-Man", "Bumblebee", "Atom Smasher"],
+                    answer: "Bumblebee"
+                },
+                {
+                    question: "Which time-traveling hero from the future uses his knowledge of history to gain fame and fortune, often with his robot sidekick Skeets?",
+                    options: ["Rip Hunter", "Waverider", "Booster Gold", "The Ray"],
+                    answer: "Booster Gold"
+                },
+                {
+                    question: "Which hero uses a symbiotic alien scarab to transform into a powerful armored suit, often associated with the Teen Titans or Justice League?",
+                    options: ["Green Lantern", "Iron Man", "Blue Beetle", "Steel"],
+                    answer: "Blue Beetle"
                 }
-            });
+            ];
 
-            if (selectedOption === correctOption) {
-                score++;
-                showMessage("Correct!", 1000);
-            } else {
-                showMessage("Incorrect. The correct answer was: " + correctOption, 2000);
+            let quizQuestions = []; // This will hold the shuffled questions
+            let currentQuestionIndex = 0;
+            let score = 0;
+            let selectedOption = null;
+            let quizActive = true; // To prevent multiple submissions
+
+            // Get DOM elements
+            const questionDisplay = document.getElementById('question-display');
+            const optionsContainer = document.getElementById('options-container');
+            const submitButton = document.getElementById('submit-btn');
+            const quizArea = document.getElementById('quiz-area');
+            const resultsArea = document.getElementById('results-area');
+            const scoreDisplay = document.getElementById('score-display');
+            const restartButton = document.getElementById('restart-btn');
+            const messageBox = document.getElementById('message-box');
+            // New for generator
+            const generatorArea = document.getElementById('generator-area');
+            const generateBtn = document.getElementById('generate-btn');
+            const quizTopic = document.getElementById('quiz-topic');
+            const generationStatus = document.getElementById('generation-status');
+
+            /**
+             * Shuffles an array in place using the Fisher-Yates (Knuth) algorithm.
+             * @param {Array} array - The array to shuffle.
+             */
+            function shuffleArray(array) {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]]; // Swap elements
+                }
             }
 
-            submitButton.disabled = true; // Keep submit disabled until next question
-            setTimeout(() => {
-                currentQuestionIndex++;
-                loadQuestion();
-            }, 2000); // Wait 2 seconds before loading next question
-        }
-
-        /**
-         * Displays the final quiz results.
-         */
-        function showResults() {
-            quizArea.classList.add('hidden');
-            resultsArea.classList.remove('hidden');
-            scoreDisplay.textContent = `You scored ${score} out of ${quizQuestions.length} questions!`;
-        }
-
-        /**
-         * Resets the quiz to its initial state and starts over.
-         */
-        function restartQuiz() {
-            currentQuestionIndex = 0;
-            score = 0;
-            selectedOption = null;
-            // Shuffle questions again for a new game
-            quizQuestions = [...initialQuizQuestions]; // Reset to original questions
-            shuffleArray(quizQuestions);
-            resultsArea.classList.add('hidden');
-            quizArea.classList.remove('hidden');
-            const quizTitle = document.getElementById('quiz-title');
-            quizTitle.textContent = 'Playable Example: DC Comics Character Quiz';
-            quizTitle.className = 'text-3xl font-extrabold text-center text-gray-800 mb-6';
-            loadQuestion();
-        }
-
-        /**
-         * Generates a new quiz using Gemini API via your backend.
-         * Replace 'http://localhost:3000/generate-quiz' with your backend endpoint.
-         */
-        async function generateQuiz() {
-            const topic = quizTopic.value.trim();
-            if (!topic) {
-                showMessage('Please enter a quiz topic.');
-                return;
+            /**
+             * Displays a temporary message to the user.
+             * @param {string} message - The message to display.
+             * @param {number} duration - The duration in milliseconds for the message to be visible.
+             */
+            function showMessage(message, duration = 2000) {
+                messageBox.textContent = message;
+                messageBox.style.display = 'block';
+                setTimeout(() => {
+                    messageBox.style.display = 'none';
+                }, duration);
             }
-            generationStatus.style.display = 'block';
-            generationStatus.textContent = 'Generating quiz...';
-            generateBtn.disabled = true;
-            try {
-                const response = await fetch('https://osrg.lol/osrg/Quizz/quiz_generate-quiz.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ topic })
+
+            /**
+             * Loads and displays the current question and its options.
+             */
+            function loadQuestion() {
+                quizActive = true; // Reset quiz active state for new question
+                selectedOption = null; // Clear previous selection
+                submitButton.disabled = true; // Disable submit until an option is selected
+
+                if (currentQuestionIndex < quizQuestions.length) {
+                    const question = quizQuestions[currentQuestionIndex];
+                    questionDisplay.textContent = question.question;
+                    optionsContainer.innerHTML = ''; // Clear previous options
+
+                    // Shuffle options for the current question
+                    const shuffledOptions = [...question.options];
+                    shuffleArray(shuffledOptions);
+
+                    shuffledOptions.forEach(option => {
+                        const button = document.createElement('button');
+                        button.textContent = option;
+                        button.classList.add('option-button');
+                        button.addEventListener('click', () => selectOption(button, option));
+                        optionsContainer.appendChild(button);
+                    });
+                } else {
+                    showResults();
+                }
+            }
+
+            /**
+             * Handles the selection of an answer option.
+             * @param {HTMLButtonElement} clickedButton - The button element that was clicked.
+             * @param {string} optionText - The text content of the selected option.
+             */
+            function selectOption(clickedButton, optionText) {
+                // Remove 'selected' class from all buttons first
+                document.querySelectorAll('.option-button').forEach(btn => {
+                    btn.classList.remove('selected');
                 });
-                if (!response.ok) throw new Error('Failed to generate quiz.');
-                const data = await response.json();
-                const quiz = data.quiz;
-                if (!Array.isArray(quiz) || !quiz[0]?.question) {
-                    showMessage('Quiz format invalid. Try again.');
-                    generationStatus.style.display = 'none';
-                    generateBtn.disabled = false;
+
+                // Add 'selected' class to the clicked button
+                clickedButton.classList.add('selected');
+                selectedOption = optionText;
+                submitButton.disabled = false; // Enable submit button
+            }
+
+            /**
+             * Checks the selected answer against the correct answer and updates the score.
+             * Highlights correct/incorrect answers.
+             */
+            function checkAnswer() {
+                if (!quizActive) return; // Prevent double submission
+                quizActive = false; // Disable further submissions for this question
+
+                if (selectedOption === null) {
+                    showMessage("Please select an answer before submitting.");
+                    quizActive = true; // Re-enable if no option was selected
                     return;
                 }
-                quizQuestions = quiz;
+
+                const currentQuestion = quizQuestions[currentQuestionIndex];
+                const correctOption = currentQuestion.answer;
+
+                document.querySelectorAll('.option-button').forEach(button => {
+                    button.disabled = true; // Disable all options after submission
+
+                    if (button.textContent === correctOption) {
+                        button.classList.add('correct');
+                    } else if (button.classList.contains('selected') && button.textContent !== correctOption) {
+                        button.classList.add('incorrect');
+                    }
+                });
+
+                if (selectedOption === correctOption) {
+                    score++;
+                    showMessage("Correct!", 1000);
+                } else {
+                    showMessage("Incorrect. The correct answer was: " + correctOption, 2000);
+                }
+
+                submitButton.disabled = true; // Keep submit disabled until next question
+                setTimeout(() => {
+                    currentQuestionIndex++;
+                    loadQuestion();
+                }, 2000); // Wait 2 seconds before loading next question
+            }
+
+            /**
+             * Displays the final quiz results.
+             */
+            function showResults() {
+                quizArea.classList.add('hidden');
+                resultsArea.classList.remove('hidden');
+                scoreDisplay.textContent = `You scored ${score} out of ${quizQuestions.length} questions!`;
+            }
+
+            /**
+             * Resets the quiz to its initial state and starts over.
+             */
+            function restartQuiz() {
                 currentQuestionIndex = 0;
                 score = 0;
                 selectedOption = null;
+                // Shuffle questions again for a new game
+                quizQuestions = [...initialQuizQuestions]; // Reset to original questions
+                shuffleArray(quizQuestions);
                 resultsArea.classList.add('hidden');
                 quizArea.classList.remove('hidden');
-                document.getElementById('quiz-title').textContent = 'Here is your quiz';
-                document.getElementById('quiz-title').className = 'text-3xl font-extrabold text-center text-blue-700 mb-6';
+                const quizTitle = document.getElementById('quiz-title');
+                quizTitle.textContent = 'Playable Example: DC Comics Character Quiz';
+                quizTitle.className = 'text-3xl font-extrabold text-center text-gray-800 mb-6';
                 loadQuestion();
-                generationStatus.style.display = 'none';
-                showMessage('New quiz loaded!');
-            } catch (err) {
-                showMessage('Error: ' + err.message);
-                generationStatus.style.display = 'none';
-            } finally {
-                generateBtn.disabled = false;
             }
-        }
 
-        // Event Listeners
-        submitButton.addEventListener('click', checkAnswer);
-        restartButton.addEventListener('click', restartQuiz);
-        generateBtn.addEventListener('click', generateQuiz);
-        // Add event listeners for new buttons
-        document.getElementById('reload-btn').onclick = () => window.location.reload();
-        document.getElementById('translate-btn').onclick = () => {
-            window.open('https://translate.google.com/translate?sl=en&tl=he&u=' + encodeURIComponent(window.location.href), '_blank');
-        };
+            /**
+             * Generates a new quiz using Gemini API via your backend.
+             * Replace 'http://localhost:3000/generate-quiz' with your backend endpoint.
+             */
+            async function generateQuiz() {
+                const topic = quizTopic.value.trim();
+                if (!topic) {
+                    showMessage('Please enter a quiz topic.');
+                    return;
+                }
+                generationStatus.style.display = 'block';
+                generationStatus.textContent = 'Generating quiz...';
+                generateBtn.disabled = true;
+                try {
+                    const response = await fetch('https://osrg.lol/osrg/Quizz/quiz_generate-quiz.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ topic })
+                    });
+                    if (!response.ok) throw new Error('Failed to generate quiz.');
+                    const data = await response.json();
+                    const quiz = data.quiz;
+                    if (!Array.isArray(quiz) || !quiz[0]?.question) {
+                        showMessage('Quiz format invalid. Try again.');
+                        generationStatus.style.display = 'none';
+                        generateBtn.disabled = false;
+                        return;
+                    }
+                    quizQuestions = quiz;
+                    currentQuestionIndex = 0;
+                    score = 0;
+                    selectedOption = null;
+                    resultsArea.classList.add('hidden');
+                    quizArea.classList.remove('hidden');
+                    document.getElementById('quiz-title').textContent = 'Here is your quiz';
+                    document.getElementById('quiz-title').className = 'text-3xl font-extrabold text-center text-blue-700 mb-6';
+                    loadQuestion();
+                    generationStatus.style.display = 'none';
+                    showMessage('New quiz loaded!');
+                } catch (err) {
+                    showMessage('Error: ' + err.message);
+                    generationStatus.style.display = 'none';
+                } finally {
+                    generateBtn.disabled = false;
+                }
+            }
 
-        // Initial setup: Shuffle questions and load the first one
-        window.onload = function() {
-            quizQuestions = [...initialQuizQuestions]; // Copy original questions
-            shuffleArray(quizQuestions); // Shuffle them
-            loadQuestion(); // Start the quiz
-            // Show generator area by default
-            generatorArea.style.display = 'block';
-        };
-    </script>
+            // Event Listeners
+            submitButton.addEventListener('click', checkAnswer);
+            restartButton.addEventListener('click', restartQuiz);
+            generateBtn.addEventListener('click', generateQuiz);
+            // Add event listeners for new buttons
+            document.getElementById('reload-btn').onclick = () => window.location.reload();
+            document.getElementById('translate-btn').onclick = () => {
+                window.open('https://translate.google.com/translate?sl=en&tl=he&u=' + encodeURIComponent(window.location.href), '_blank');
+            };
+
+            // Initial setup: Shuffle questions and load the first one
+            window.onload = function () {
+                quizQuestions = [...initialQuizQuestions]; // Copy original questions
+                shuffleArray(quizQuestions); // Shuffle them
+                loadQuestion(); // Start the quiz
+                // Show generator area by default
+                generatorArea.style.display = 'block';
+            };
+        </script>
 </body>
+
 </html>
 <!-- This HTML file creates a DC Comics character quiz with Tailwind CSS for styling. The quiz includes various questions about DC superheroes, villains, and teams, with options shuffled for each question. The user can select answers, submit them, and receive feedback on their choices. The quiz tracks the score and allows users to restart the quiz after completion. -->

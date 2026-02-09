@@ -1,10 +1,12 @@
 <?php
 session_start();
 
-// Check if user is logged in
-if (!isset($_SESSION['user_logged_in']) || $_SESSION['user_logged_in'] !== true) {
-    header('Location: login.php');
-    exit;
+// Initialize session variables for guests
+if (!isset($_SESSION['user_logged_in'])) {
+    $_SESSION['user_logged_in'] = false;
+}
+if (!isset($_SESSION['username'])) {
+    $_SESSION['username'] = 'Guest';
 }
 
 // Ensure username is set (backward compatibility)
