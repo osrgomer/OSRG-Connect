@@ -24,7 +24,7 @@ if (isset($_POST['content'])) {
             $filename = $_FILES['file']['name'];
             $file_ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
             $file_size = $_FILES['file']['size'];
-            $max_size = 10 * 1024 * 1024; // 10MB limit
+            $max_size = 50 * 1024 * 1024; // 50MB limit
             
             if ($file_size <= $max_size && in_array($file_ext, $allowed)) {
                 // Create uploads directory with proper permissions
