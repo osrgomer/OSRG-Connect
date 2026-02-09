@@ -3,7 +3,7 @@ session_start();
 
 // Check if user is logged in
 if (!isset($_SESSION['user_logged_in']) || $_SESSION['user_logged_in'] !== true) {
-    header('Location: series_login.php');
+    header('Location: login.php');
     exit;
 }
 
@@ -54,7 +54,7 @@ $extra_buttons = '
     <button id="settingsBtn" class="p-2 text-slate-400 dark:text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700" aria-label="Settings">
         <i class="fas fa-cog"></i>
     </button>
-    <a href="series_logout.php" class="hidden md:block p-2 text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700" aria-label="Logout">
+    <a href="logout.php" class="hidden md:block p-2 text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700" aria-label="Logout">
         <i class="fas fa-sign-out-alt"></i>
     </a>
     <button id="addBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 sm:px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 shadow-md active:scale-95">

@@ -38,6 +38,6 @@ echo "<pre>";
 print_r($_SESSION['global_users']);
 echo "</pre>";
 
-echo "<br><a href='series_login.php'>Go to Login</a> | <a href='series_debug_users.php'>Check Debug</a> | <a href='series_friends.php'>Go to Friends</a>";
+echo "<br><a href='login.php'>Go to Login</a> | <a href='series_debug_users.php'>Check Debug</a> | <a href='series_friends.php'>Go to Friends</a>";
 ?>
 

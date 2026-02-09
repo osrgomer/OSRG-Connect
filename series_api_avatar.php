@@ -55,7 +55,7 @@ if ($action === 'upload' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
         
-        $avatarUrl = 'sp_uploads/avatars/' . $filename;
+        $avatarUrl = 'series_uploads/avatars/' . $filename;
         
         // Save to session
         $_SESSION['user_avatar'] = $avatarUrl;

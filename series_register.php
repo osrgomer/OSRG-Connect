@@ -83,11 +83,11 @@ if ($_POST) {
 
         <div class="mt-6 text-center text-sm">
             <span class="text-slate-600">Already a member?</span>
-            <a href="series_login.php" class="text-indigo-600 hover:text-indigo-700 font-bold ml-1">Sign in</a>
+            <a href="login.php" class="text-indigo-600 hover:text-indigo-700 font-bold ml-1">Sign in</a>
         </div>
     </div>
 
-    <a href="series_login.php" class="mt-8 text-slate-600 hover:text-slate-800 text-sm transition-colors flex items-center gap-2">
+    <a href="login.php" class="mt-8 text-slate-600 hover:text-slate-800 text-sm transition-colors flex items-center gap-2">
         <i class="fas fa-arrow-left"></i>
         Back to Login
     </a>

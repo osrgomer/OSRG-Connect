@@ -3,7 +3,7 @@ session_start();
 
 // Admin authentication
 if (!isset($_SESSION['user_logged_in']) || $_SESSION['user_logged_in'] !== true) {
-    header('Location: series_login.php');
+    header('Location: login.php');
     exit;
 }
 

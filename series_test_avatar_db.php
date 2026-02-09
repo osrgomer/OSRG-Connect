@@ -6,7 +6,7 @@ $_SESSION['user_id'] = 1;
 require_once __DIR__ . '/series_db.php';
 $db = getDB();
 
-$newAvatar = 'sp_uploads/avatars/avatar_af9237232b07134baee830e8fcf421d0.jpg';
+$newAvatar = 'series_uploads/avatars/avatar_af9237232b07134baee830e8fcf421d0.jpg';
 
 echo "<h1>Manual Avatar Update Test</h1>";
 
