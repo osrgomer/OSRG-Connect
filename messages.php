@@ -72,6 +72,21 @@ if ((isset($_POST['content']) || isset($_FILES['attachment'])) && $friend_id) {
             
             mail($notification_data['email'], $subject, $body, $headers);
         }
+        
+        // Create in-app notification for the recipient
+        try {
+            $sender_name = $notification_data['sender_name'] ?? 'Someone';
+            $message_preview = !empty($content) ? substr($content, 0, 50) : '📎 Sent an attachment';
+            if (strlen($content) > 50) {
+                $message_preview .= '...';
+            }
+            
+            $notif_text = $sender_name . ": " . $message_preview;
+            $stmt_notif = $pdo->prepare("INSERT INTO user_activity (user_id, type, description, link) VALUES (?, 'message', ?, 'messages.php?friend=" . $_SESSION['user_id'] . "')");
+            $stmt_notif->execute([$friend_id, $notif_text]);
+        } catch (Exception $e) {
+            // Continue even if notification fails
+        }
     }
     
     header("Location: messages.php?friend=$friend_id");
@@ -138,6 +153,55 @@ $friends = $stmt->fetchAll();
         button:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(24,119,242,0.3); }
         .chat-header { padding: 20px; border-bottom: 1px solid rgba(0,0,0,0.1); background: rgba(248,249,250,0.8); border-radius: 15px 15px 0 0; }
         .chat-header h3 { color: #1877f2; margin: 0; }
+        
+        /* Lightbox Modal */
+        .lightbox {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+        }
+        .lightbox.active {
+            display: flex;
+        }
+        .lightbox-content {
+            max-width: 90%;
+            max-height: 90%;
+            position: relative;
+        }
+        .lightbox-content img,
+        .lightbox-content video {
+            max-width: 100%;
+            max-height: 90vh;
+            border-radius: 8px;
+        }
+        .lightbox-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            z-index: 10000;
+        }
+        .lightbox-close:hover {
+            background: white;
+            transform: rotate(90deg);
+        }
         
         @media (max-width: 768px) {
             body {
@@ -246,6 +310,41 @@ $friends = $stmt->fetchAll();
             if (currentFriendId) {
                 checkNewMessages();
             }
+        
+        function openLightbox(src, type) {
+            const lightbox = document.getElementById('lightbox');
+            const lightboxContent = document.getElementById('lightbox-content');
+            
+            lightboxContent.innerHTML = '';
+            
+            if (type === 'image') {
+                const img = document.createElement('img');
+                img.src = src;
+                lightboxContent.appendChild(img);
+            } else if (type === 'video') {
+                const video = document.createElement('video');
+                video.controls = true;
+                video.autoplay = true;
+                video.style.maxWidth = '100%';
+                video.style.maxHeight = '90vh';
+                video.style.borderRadius = '8px';
+                const source = document.createElement('source');
+                source.src = src;
+                video.appendChild(source);
+                lightboxContent.appendChild(video);
+            }
+            
+            lightbox.classList.add('active');
+        }
+        
+        function closeLightbox() {
+            const lightbox = document.getElementById('lightbox');
+            lightbox.classList.remove('active');
+            const video = lightbox.querySelector('video');
+            if (video) {
+                video.pause();
+            }
+        }
         }, 3000);
         
         // Request notification permission on page load
@@ -316,13 +415,18 @@ $friends = $stmt->fetchAll();
                                 ?>
                                 
                                 <?php if ($is_image): ?>
-                                    <a href="serve_message_file.php?id=<?= $message['id'] ?>" target="_blank">
-                                        <img src="serve_message_file.php?id=<?= $message['id'] ?>" style="max-width: 250px; max-height: 250px; border-radius: 8px; cursor: pointer;" alt="<?= htmlspecialchars($message['file_path']) ?>">
-                                    </a>
+                                    <img src="serve_message_file.php?id=<?= $message['id'] ?>" 
+                                         style="max-width: 250px; max-height: 250px; border-radius: 8px; cursor: pointer;" 
+                                         alt="<?= htmlspecialchars($message['file_path']) ?>"
+                                         onclick="openLightbox('serve_message_file.php?id=<?= $message['id'] ?>', 'image')">
                                 <?php elseif ($is_video): ?>
-                                    <video controls style="max-width: 300px; border-radius: 8px;">
-                                        <source src="serve_message_file.php?id=<?= $message['id'] ?>" type="<?= htmlspecialchars($message['file_type']) ?>">
-                                    </video>
+                                    <div style="position: relative; max-width: 300px;">
+                                        <video style="max-width: 300px; border-radius: 8px; cursor: pointer;" 
+                                               onclick="openLightbox('serve_message_file.php?id=<?= $message['id'] ?>', 'video')">
+                                            <source src="serve_message_file.php?id=<?= $message['id'] ?>" type="<?= htmlspecialchars($message['file_type']) ?>">
+                                        </video>
+                                        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 48px; opacity: 0.8; pointer-events: none;">▶️</div>
+                                    </div>
                                 <?php elseif ($is_audio): ?>
                                     <audio controls style="width: 100%; max-width: 300px;">
                                         <source src="serve_message_file.php?id=<?= $message['id'] ?>" type="<?= htmlspecialchars($message['file_type']) ?>">
@@ -362,6 +466,12 @@ $friends = $stmt->fetchAll();
                 </div>
             <?php endif; ?>
         </div>
+    </div>
+    
+    <!-- Lightbox Modal -->
+    <div id="lightbox" class="lightbox" onclick="closeLightbox()">
+        <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+        <div id="lightbox-content" class="lightbox-content" onclick="event.stopPropagation()"></div>
     </div>
 </body>
 </html>
