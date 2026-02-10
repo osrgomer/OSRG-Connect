@@ -1,21 +1,39 @@
 <?php
 header('Content-Type: application/json');
+
+// CORS Headers (Full Support)
 header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type');
+
+// Handle Preflight
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit;
+}
 
 require_once 'config.php';
 require_once 'config_keys.php';
 
-$data = json_decode(file_get_contents('php://input'), true);
-$topic = $data['topic'] ?? '';
+$raw_input = file_get_contents('php://input');
+$data = json_decode($raw_input, true);
 
-// Gemini API key from config
-$apiKey = defined('GEMINI_API_KEY') ? GEMINI_API_KEY : '';
+if (json_last_error() !== JSON_ERROR_NONE) {
+    http_response_code(400);
+    echo json_encode(['error' => 'Invalid JSON input: ' . json_last_error_msg()]);
+    exit;
+}
+
+$topic = $data['topic'] ?? '';
 
 if (!$topic) {
     http_response_code(400);
-    echo json_encode(['error' => 'Missing topic']);
+    echo json_encode(['error' => 'Missing topic parameter']);
     exit;
 }
+
+// Gemini API key from config
+$apiKey = defined('GEMINI_API_KEY') ? GEMINI_API_KEY : '';
 
 // Gemini API endpoint and payload (adjust as needed)
 $geminiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' . urlencode($apiKey);
