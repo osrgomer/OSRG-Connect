@@ -12,64 +12,64 @@ if (!isset($_SESSION['user_logged_in']) || $_SESSION['user_logged_in'] !== true)
 $currentUserId = $_SESSION['user_email'] ?? 'user@example.com';
 $currentUserName = $_SESSION['user_name'] ?? 'User';
 
-// Initialize activity storage
-if (!isset($_SESSION['user_activity'])) {
-    $_SESSION['user_activity'] = [];
-}
-if (!isset($_SESSION['user_activity'][$currentUserId])) {
-    $_SESSION['user_activity'][$currentUserId] = [];
+
+// Connect to DB
+require_once 'series_db.php';
+$pdo = get_db();
+
+$currentUser = null;
+if (isset($_SESSION['user_id'])) {
+    $stmt = $pdo->prepare("SELECT id, username FROM users WHERE id = ?");
+    $stmt->execute([$_SESSION['user_id']]);
+    $currentUser = $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
-$action = $_GET['action'] ?? '';
-$method = $_SERVER['REQUEST_METHOD'];
+// Fetch Activities
+$activities = [];
 
-switch ($action) {
-    case 'log_activity':
-        if ($method === 'POST') {
-            $data = json_decode(file_get_contents('php://input'), true);
-            
-            $activityType = $data['type'] ?? '';
-            $showTitle = $data['show'] ?? '';
-            $rating = $data['rating'] ?? null;
-            $progress = $data['progress'] ?? null;
-            
-            if (!$activityType || !$showTitle) {
-                echo json_encode(['success' => false, 'message' => 'Missing data']);
-                exit;
-            }
-            
-            // Get user avatar from global_users
-            $userAvatar = $_SESSION['global_users'][$currentUserId]['avatar'] ?? 'https://ui-avatars.com/api/?name=' . urlencode($currentUserName) . '&background=4f46e5&color=fff';
-            
-            // Create activity entry
-            $activity = [
-                'user' => [
-                    'id' => $currentUserId,
-                    'username' => $currentUserName,
-                    'avatar' => $userAvatar,
-                    'online' => true
-                ],
-                'action' => $activityType,
-                'show' => $showTitle,
-                'time' => time(),
-                'rating' => $rating,
-                'progress' => $progress
-            ];
-            
-            // Add to user's activity log
-            $_SESSION['user_activity'][$currentUserId][] = $activity;
-            
-            // Keep only last 50 activities per user
-            if (count($_SESSION['user_activity'][$currentUserId]) > 50) {
-                $_SESSION['user_activity'][$currentUserId] = array_slice($_SESSION['user_activity'][$currentUserId], -50);
-            }
-            
-            echo json_encode(['success' => true]);
-        }
-        break;
-        
-    default:
-        http_response_code(400);
-        echo json_encode(['error' => 'Invalid action']);
-        break;
+try {
+    // Determine if admin
+    $isAdmin = $currentUser && ($currentUser['username'] === 'OSRG' || $currentUser['username'] === 'backup' || $currentUser['username'] === 'Omer Shalom Rimon');
+    
+    // Build Query
+    // Normal users see: public activities OR their own
+    // Admin sees: all public activities AND 'system' type notifications (registrations)
+    
+    $sql = "
+        SELECT ua.*, u.username, u.avatar
+        FROM user_activity ua
+        JOIN users u ON ua.user_id = u.id
+        WHERE 
+    ";
+    
+    if ($isAdmin) {
+        // Admin sees everything, including system notifications
+        $sql .= " (ua.type = 'system' OR ua.type != 'system') "; // Effectively everything, explicit for clarity
+    } else {
+        // Regular users DON'T see system notifications (registrations)
+        $sql .= " ua.type != 'system' ";
+    }
+    
+    $sql .= " ORDER BY ua.created_at DESC LIMIT 20";
+    
+    $stmt = $pdo->query($sql);
+    $raw_activities = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    foreach ($raw_activities as $act) {
+        $activities[] = [
+            'id' => $act['id'],
+            'type' => $act['type'],
+            'description' => $act['description'],
+            'text' => $act['description'], // compatibility
+            'link' => $act['link'],
+            'timestamp' => strtotime($act['created_at']),
+            'username' => $act['username'],
+            'avatar_url' => $act['avatar'] ? (strpos($act['avatar'], 'http') === 0 ? $act['avatar'] : 'serve_asset.php?file=' . basename($act['avatar'])) : null
+        ];
+    }
+
+} catch (Exception $e) {
+    // Silent fail or return empty
 }
+
+echo json_encode(['activities' => $activities]);

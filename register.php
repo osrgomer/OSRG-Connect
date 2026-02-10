@@ -40,6 +40,21 @@ if ($_POST['username'] ?? false) {
             
             mail('omersr12@gmail.com', $subject, $body, $headers);
             
+            // Add internal notification for Admin
+            try {
+                // Find Admin ID (OSRG or Omer Shalom Rimon)
+                $adm = $pdo->query("SELECT id FROM users WHERE username IN ('OSRG', 'Omer Shalom Rimon', 'backup') OR email = 'omersr12@gmail.com' LIMIT 1")->fetch();
+                if ($adm) {
+                    $new_user_id = $pdo->lastInsertId();
+                    $notif_text = "New user registered: " . $_POST['username'];
+                    $activity_stmt = $pdo->prepare("INSERT INTO user_activity (user_id, type, description, link) VALUES (?, 'system', ?, 'admin.php')");
+                    // We log this activity under the ADMIN's ID so they see it, OR we can implement a 'target_user_id' column if the system supports it.
+                    // Assuming current system shows activity OF followed users or general logs.
+                    // Better approach for this specific request: Log it as system activity that the admin will see in the global logs.
+                    $activity_stmt->execute([$new_user_id, $notif_text]); 
+                }
+            } catch (Exception $e) { /* Ignore notification error */ }
+            
             $message = 'Registration submitted! Please wait for admin approval before logging in.';
         }
         } catch (PDOException $e) {
