@@ -87,6 +87,143 @@ if (!isset($_SESSION['user_id'])) {
             }
         }
     </script>
+    <!-- Make sure FontAwesome is loaded -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Notification Styles */
+        #notifBtn { background: none; border: none; cursor: pointer; position: relative; padding: 8px; margin-right: 15px; font-size: 1.2rem; color: #555; }
+        #notifBtn:hover { color: #1877f2; background-color: #f0f2f5; border-radius: 50%; }
+        #notifBadge { position: absolute; top: -2px; right: -2px; background: #e41e3f; color: white; font-size: 0.7rem; font-weight: bold; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid white; }
+        #notifDropdown { display: none; position: absolute; top: 60px; right: 20px; width: 320px; background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 10000; overflow: hidden; border: 1px solid #ddd; }
+        #notifDropdown.show { display: block; }
+        .notif-header { padding: 12px 16px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; background: #f9fafb; }
+        .notif-header h3 { margin: 0; font-size: 1rem; color: #1f2937; }
+        .notif-header button { background: none; border: none; color: #1877f2; cursor: pointer; font-size: 0.85rem; }
+        .notif-list { max-height: 400px; overflow-y: auto; }
+        .notif-item { padding: 12px 16px; border-bottom: 1px solid #f0f0f0; display: flex; align-items: start; gap: 12px; transition: background 0.2s; text-decoration: none; color: inherit; }
+        .notif-item:hover { background: #f0f2f5; }
+        .notif-item.unread { background: #e7f3ff; }
+        .notif-icon { width: 36px; height: 36px; border-radius: 50%; background: #e4e6eb; display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
+        .notif-content { flex: 1; font-size: 0.9rem; }
+        .notif-time { display: block; font-size: 0.75rem; color: #65676b; margin-top: 4px; }
+        .empty-notif { padding: 40px 20px; text-align: center; color: #65676b; }
+    </style>
+    <script>
+        // Notification Logic
+        document.addEventListener('DOMContentLoaded', function() {
+            const notifBtn = document.getElementById('notifBtn');
+            const notifDropdown = document.getElementById('notifDropdown');
+            const notifBadge = document.getElementById('notifBadge');
+            const notifList = document.getElementById('notifList');
+            
+            // Toggle Dropdown
+            notifBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                notifDropdown.classList.toggle('show');
+                if (notifDropdown.classList.contains('show')) {
+                    markAllAsRead();
+                }
+            });
+
+            // Close when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!notifDropdown.contains(e.target) && !notifBtn.contains(e.target)) {
+                    notifDropdown.classList.remove('show');
+                }
+            });
+
+            // Load Notifications
+            function loadNotifications() {
+                // Determine API endpoint based on available files
+                // Using SeriesList API if available, otherwise mock or local
+                const apiUrl = 'series_api_activity.php?bg=1'; 
+                
+                fetch(apiUrl)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.activities && data.activities.length > 0) {
+                            renderNotifications(data.activities);
+                            const unreadCount = data.activities.filter(a => !isRead(a.id)).length;
+                            updateBadge(unreadCount);
+                        } else {
+                            notifList.innerHTML = '<div class="empty-notif">No updates yet</div>';
+                            updateBadge(0);
+                        }
+                    })
+                    .catch(e => console.error('Notif error:', e));
+            }
+
+            function renderNotifications(activities) {
+                const html = activities.map(act => {
+                    const isUnread = !isRead(act.id);
+                    const icon = getIconForType(act.type);
+                    // Simplify: Just link to index or relevant page
+                    const link = act.link || '#';
+                    
+                    return `
+                        <a href="${link}" class="notif-item ${isUnread ? 'unread' : ''}">
+                            <div class="notif-icon">${icon}</div>
+                            <div class="notif-content">
+                                <div>${act.description || act.text}</div>
+                                <span class="notif-time">${formatTime(act.timestamp)}</span>
+                            </div>
+                        </a>
+                    `;
+                }).join('');
+                notifList.innerHTML = html;
+            }
+
+            function getIconForType(type) {
+                const icons = {
+                    'post': '📝',
+                    'comment': '💬',
+                    'like': '❤️',
+                    'follow': '👋',
+                    'reel': '🎬',
+                    'game': '🎮',
+                    'system': '🔧'
+                };
+                return icons[type] || '🔔';
+            }
+
+            function formatTime(timestamp) {
+                const userTime = new Date(timestamp * 1000); // Assuming PHP sends seconds
+                const now = new Date();
+                const diff = (now - userTime) / 1000;
+                
+                if (diff < 60) return 'Just now';
+                if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+                if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+                return Math.floor(diff / 86400) + 'd ago';
+            }
+
+            function updateBadge(count) {
+                if (count > 0) {
+                    notifBadge.textContent = count > 99 ? '99+' : count;
+                    notifBadge.style.display = 'flex';
+                } else {
+                    notifBadge.style.display = 'none';
+                }
+            }
+
+            // Simple local storage read/unread tracking
+            function isRead(id) {
+                const read = JSON.parse(localStorage.getItem('read_notifs') || '[]');
+                return read.includes(id);
+            }
+
+            function markAllAsRead() {
+                const items = document.querySelectorAll('.notif-item');
+                // In a real app, you'd send this to server. 
+                // For now, we clear the badge visually
+                updateBadge(0);
+            }
+
+            // Poll for notifications
+            loadNotifications();
+            setInterval(loadNotifications, 60000); // Poll every minute
+        });
+    </script>
 </head>
 <body>
     <div class="nav">
@@ -119,42 +256,63 @@ if (!isset($_SESSION['user_id'])) {
                     }
                 }
             }
-            if (isset($user_nav) && $user_nav && ($user_nav['username'] === 'OSRG' || $user_nav['username'] === 'backup')): ?>
+            if (isset($user_nav) && $user_nav && ($user_nav['username'] === 'OSRG' || $user_nav['username'] === 'backup' || $user_nav['username'] === 'Omer Shalom Rimon')): ?>
                 <a href="admin.php" style="color: #d32f2f; font-weight: bold;">Admin Panel</a>
             <?php endif; ?>
             <a href="logout.php">Logout</a>
         </div>
         
-        <div class="avatar-container">
-            <?php
-            $avatar = ($user_nav && !empty($user_nav['avatar'])) ? $user_nav['avatar'] : null;
-            $random_avatars = ['👤', '👨', '👩', '🧑', '👶', '🐱', '🐶', '🦊'];
-            $default_avatar = $random_avatars[($_SESSION['user_id'] ?? 0) % count($random_avatars)];
-            ?>
-            <a href="settings.php#profile" style="text-decoration: none;">
-                <?php 
-                $is_image = $avatar && (
-                    strpos($avatar, 'sp_avatars/') === 0 || 
-                    strpos($avatar, 'avatars/') === 0 || 
-                    strpos($avatar, 'http') === 0 ||
-                    preg_match('/\.(jpg|jpeg|png|gif|webp)$/i', $avatar)
-                );
+        <!-- Right Side: Notifications + Avatar -->
+        <div style="display: flex; align-items: center;">
+            
+            <!-- Notification Bell -->
+            <div style="position: relative; margin-right: 15px;">
+                <button id="notifBtn">
+                    <i class="fas fa-bell"></i>
+                    <span id="notifBadge" style="display: none;">0</span>
+                </button>
+                <div id="notifDropdown">
+                    <div class="notif-header">
+                        <h3>Notifications</h3>
+                        <button onclick="document.getElementById('notifList').innerHTML='';">Clear</button>
+                    </div>
+                    <div id="notifList" class="notif-list">
+                        <!-- Items will be injected here -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="avatar-container">
+                <?php
+                $avatar = ($user_nav && !empty($user_nav['avatar'])) ? $user_nav['avatar'] : null;
+                $random_avatars = ['👤', '👨', '👩', '🧑', '👶', '🐱', '🐶', '🦊'];
+                $default_avatar = $random_avatars[($_SESSION['user_id'] ?? 0) % count($random_avatars)];
                 ?>
-                <?php if ($is_image): ?>
+                <a href="settings.php#profile" style="text-decoration: none;">
                     <?php 
-                    $avatar_url = (strpos($avatar, 'http') === 0) ? $avatar : 'serve_asset.php?file=' . basename($avatar);
+                    $is_image = $avatar && (
+                        strpos($avatar, 'sp_avatars/') === 0 || 
+                        strpos($avatar, 'avatars/') === 0 || 
+                        strpos($avatar, 'http') === 0 ||
+                        preg_match('/\.(jpg|jpeg|png|gif|webp)$/i', $avatar)
+                    );
                     ?>
-                    <img src="<?= htmlspecialchars($avatar_url) ?>" alt="Avatar" class="user-avatar" style="object-fit: cover; width: 40px; height: 40px; border-radius: 50%;">
-                <?php elseif (!empty($avatar)): ?>
-                    <span style="font-size: 32px; cursor: pointer; display: inline-block; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
-                        <?= htmlspecialchars($avatar) ?>
-                    </span>
-                <?php else: ?>
-                    <span style="font-size: 32px; cursor: pointer; display: inline-block; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
-                        <?= $default_avatar ?>
-                    </span>
-                <?php endif; ?>
-            </a>
+                    <?php if ($is_image): ?>
+                        <?php 
+                        $avatar_url = (strpos($avatar, 'http') === 0) ? $avatar : 'serve_asset.php?file=' . basename($avatar);
+                        ?>
+                        <img src="<?= htmlspecialchars($avatar_url) ?>" alt="Avatar" class="user-avatar" style="object-fit: cover; width: 40px; height: 40px; border-radius: 50%;">
+                    <?php elseif (!empty($avatar)): ?>
+                        <span style="font-size: 32px; cursor: pointer; display: inline-block; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+                            <?= htmlspecialchars($avatar) ?>
+                        </span>
+                    <?php else: ?>
+                        <span style="font-size: 32px; cursor: pointer; display: inline-block; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+                            <?= $default_avatar ?>
+                        </span>
+                    <?php endif; ?>
+                </a>
+            </div>
         </div>
     </div>
     <div class="container">
