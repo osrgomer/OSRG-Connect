@@ -10,9 +10,14 @@ $pdo = get_db();
 
 // Handle add friend
 if ($_GET['add'] ?? false) {
-    $stmt = $pdo->prepare("INSERT OR IGNORE INTO friends (user_id, friend_id, status) VALUES (?, ?, 'pending')");
-    $stmt->execute([$_SESSION['user_id'], $_GET['add']]);
-    $message = 'Friend request sent!';
+    try {
+        // Use MySQL syntax instead of SQLite
+        $stmt = $pdo->prepare("INSERT IGNORE INTO friends (user_id, friend_id, status) VALUES (?, ?, 'pending')");
+        $stmt->execute([$_SESSION['user_id'], $_GET['add']]);
+        $message = 'Friend request sent!';
+    } catch (Exception $e) {
+        $message = 'Could not send friend request. Please try again.';
+    }
 }
 
 // Get search term
