@@ -19,32 +19,59 @@ if ($friend_id) {
     $friend_name = $friend ? $friend['username'] : '';
 }
 
-// Send message
-if ($_POST['content'] ?? false && $friend_id) {
-    $stmt = $pdo->prepare("INSERT INTO messages (sender_id, receiver_id, content) VALUES (?, ?, ?)");
-    $stmt->execute([$_SESSION['user_id'], $friend_id, $_POST['content']]);
+// Send message (with optional file attachment)
+if ((isset($_POST['content']) || isset($_FILES['attachment'])) && $friend_id) {
+    $content = $_POST['content'] ?? '';
+    $file_path = null;
+    $file_type = null;
+    $file_content = null;
     
-    // Check if receiver wants email notifications
-    $stmt = $pdo->prepare("SELECT u.email, u.username, u.email_notifications, s.username as sender_name FROM users u, users s WHERE u.id = ? AND s.id = ?");
-    $stmt->execute([$friend_id, $_SESSION['user_id']]);
-    $notification_data = $stmt->fetch();
+    // Handle file upload
+    if (isset($_FILES['attachment']) && $_FILES['attachment']['error'] === UPLOAD_ERR_OK) {
+        $allowed_types = ['mp3', 'mp4', 'png', 'jpg', 'jpeg', 'webp', 'txt', 'md'];
+        $max_size = 50 * 1024 * 1024; // 50MB
+        
+        $file_ext = strtolower(pathinfo($_FILES['attachment']['name'], PATHINFO_EXTENSION));
+        $file_size = $_FILES['attachment']['size'];
+        
+        if (!in_array($file_ext, $allowed_types)) {
+            $_SESSION['message_error'] = 'Invalid file type. Allowed: ' . implode(', ', $allowed_types);
+        } elseif ($file_size > $max_size) {
+            $_SESSION['message_error'] = 'File too large. Maximum size: 50MB';
+        } else {
+            $file_type = $_FILES['attachment']['type'];
+            $file_path = $_FILES['attachment']['name'];
+            $file_content = file_get_contents($_FILES['attachment']['tmp_name']);
+        }
+    }
     
-    if ($notification_data && $notification_data['email_notifications']) {
-        $subject = "New Message - OSRG Connect";
-        $body = "Hi " . $notification_data['username'] . ",\n\n";
-        $body .= "You have received a new message from " . $notification_data['sender_name'] . " on OSRG Connect.\n\n";
-        $body .= "Login to read and reply: https://connect.osrg.lol/messages\n\n";
-        $body .= "Best regards,\nOSRG Connect Team";
+    // Insert message (allow empty content if file is attached)
+    if (!empty($content) || $file_content !== null) {
+        $stmt = $pdo->prepare("INSERT INTO messages (sender_id, receiver_id, content, file_path, file_type, file_content) VALUES (?, ?, ?, ?, ?, ?)");
+        $stmt->execute([$_SESSION['user_id'], $friend_id, $content, $file_path, $file_type, $file_content]);
         
-        $headers = "From: OSRG Connect <omer@osrg.lol>\r\n";
-        $headers .= "Reply-To: omer@osrg.lol\r\n";
-        $headers .= "X-Mailer: PHP/" . phpversion();
+        // Check if receiver wants email notifications
+        $stmt = $pdo->prepare("SELECT u.email, u.username, u.email_notifications, s.username as sender_name FROM users u, users s WHERE u.id = ? AND s.id = ?");
+        $stmt->execute([$friend_id, $_SESSION['user_id']]);
+        $notification_data = $stmt->fetch();
         
-        ini_set('SMTP', 'smtp.hostinger.com');
-        ini_set('smtp_port', '465');
-        ini_set('sendmail_from', 'omer@osrg.lol');
-        
-        mail($notification_data['email'], $subject, $body, $headers);
+        if ($notification_data && $notification_data['email_notifications']) {
+            $subject = "New Message - OSRG Connect";
+            $body = "Hi " . $notification_data['username'] . ",\n\n";
+            $body .= "You have received a new message from " . $notification_data['sender_name'] . " on OSRG Connect.\n\n";
+            $body .= "Login to read and reply: https://connect.osrg.lol/messages\n\n";
+            $body .= "Best regards,\nOSRG Connect Team";
+            
+            $headers = "From: OSRG Connect <omer@osrg.lol>\r\n";
+            $headers .= "Reply-To: omer@osrg.lol\r\n";
+            $headers .= "X-Mailer: PHP/" . phpversion();
+            
+            ini_set('SMTP', 'smtp.hostinger.com');
+            ini_set('smtp_port', '465');
+            ini_set('sendmail_from', 'omer@osrg.lol');
+            
+            mail($notification_data['email'], $subject, $body, $headers);
+        }
     }
     
     header("Location: messages.php?friend=$friend_id");
@@ -55,7 +82,7 @@ if ($_POST['content'] ?? false && $friend_id) {
 $messages = [];
 if ($friend_id) {
     $stmt = $pdo->prepare("
-        SELECT m.content, m.created_at, u.username, m.sender_id
+        SELECT m.id, m.content, m.created_at, m.file_path, m.file_type, u.username, m.sender_id
         FROM messages m 
         JOIN users u ON m.sender_id = u.id
         WHERE (m.sender_id = ? AND m.receiver_id = ?) OR (m.sender_id = ? AND m.receiver_id = ?)
@@ -275,16 +302,58 @@ $friends = $stmt->fetchAll();
                 <div class="messages">
                     <?php foreach ($messages as $message): ?>
                     <div class="message <?= $message['sender_id'] == $_SESSION['user_id'] ? 'sent' : 'received' ?>">
-                        <div><?= htmlspecialchars($message['content']) ?></div>
+                        <?php if (!empty($message['content'])): ?>
+                            <div><?= htmlspecialchars($message['content']) ?></div>
+                        <?php endif; ?>
+                        
+                        <?php if ($message['file_path']): ?>
+                            <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.2);">
+                                <?php 
+                                $file_ext = strtolower(pathinfo($message['file_path'], PATHINFO_EXTENSION));
+                                $is_image = in_array($file_ext, ['png', 'jpg', 'jpeg', 'webp']);
+                                $is_video = in_array($file_ext, ['mp4']);
+                                $is_audio = in_array($file_ext, ['mp3']);
+                                ?>
+                                
+                                <?php if ($is_image): ?>
+                                    <a href="serve_message_file.php?id=<?= $message['id'] ?>" target="_blank">
+                                        <img src="serve_message_file.php?id=<?= $message['id'] ?>" style="max-width: 250px; max-height: 250px; border-radius: 8px; cursor: pointer;" alt="<?= htmlspecialchars($message['file_path']) ?>">
+                                    </a>
+                                <?php elseif ($is_video): ?>
+                                    <video controls style="max-width: 300px; border-radius: 8px;">
+                                        <source src="serve_message_file.php?id=<?= $message['id'] ?>" type="<?= htmlspecialchars($message['file_type']) ?>">
+                                    </video>
+                                <?php elseif ($is_audio): ?>
+                                    <audio controls style="width: 100%; max-width: 300px;">
+                                        <source src="serve_message_file.php?id=<?= $message['id'] ?>" type="<?= htmlspecialchars($message['file_type']) ?>">
+                                    </audio>
+                                <?php else: ?>
+                                    <a href="serve_message_file.php?id=<?= $message['id'] ?>" style="color: inherit; text-decoration: underline;" download="<?= htmlspecialchars($message['file_path']) ?>">
+                                        📎 <?= htmlspecialchars($message['file_path']) ?>
+                                    </a>
+                                <?php endif; ?>
+                            </div>
+                        <?php endif; ?>
+                        
                         <small><?= date('M j, H:i', strtotime($message['created_at'])) ?></small>
                     </div>
                     <?php endforeach; ?>
                 </div>
 
-                <form method="POST" class="message-form" onsubmit="return sendMessage(event)">
-                    <div style="display: flex; gap: 10px;">
-                        <textarea name="content" placeholder="Type your message..." rows="2" required onkeydown="handleEnter(event)"></textarea>
-                        <button type="submit">Send</button>
+                <form method="POST" enctype="multipart/form-data" class="message-form" onsubmit="return sendMessage(event)">
+                    <?php if (isset($_SESSION['message_error'])): ?>
+                        <div style="color: #e74c3c; font-size: 12px; margin-bottom: 8px;">
+                            <?= htmlspecialchars($_SESSION['message_error']) ?>
+                            <?php unset($_SESSION['message_error']); ?>
+                        </div>
+                    <?php endif; ?>
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <textarea name="content" placeholder="Type your message..." rows="2" onkeydown="handleEnter(event)"></textarea>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <input type="file" name="attachment" accept=".mp3,.mp4,.png,.jpg,.jpeg,.webp,.txt,.md" style="flex: 1; padding: 8px; font-size: 13px;">
+                            <button type="submit">Send</button>
+                        </div>
+                        <div style="font-size: 11px; color: #666;">Max 50MB • Allowed: mp3, mp4, png, jpg, jpeg, webp, txt, md</div>
                     </div>
                 </form>
             <?php else: ?>

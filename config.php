@@ -106,10 +106,24 @@ function init_db() {
         sender_id INT NOT NULL, 
         receiver_id INT NOT NULL,
         content TEXT, 
+        file_path VARCHAR(500),
+        file_type VARCHAR(100),
+        file_content LONGBLOB,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY(sender_id) REFERENCES users(id) ON DELETE CASCADE,
         FOREIGN KEY(receiver_id) REFERENCES users(id) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+    
+    // Add file attachment columns if they don't exist
+    try {
+        $pdo->exec("ALTER TABLE messages ADD COLUMN file_path VARCHAR(500)");
+    } catch (Exception $e) {}
+    try {
+        $pdo->exec("ALTER TABLE messages ADD COLUMN file_type VARCHAR(100)");
+    } catch (Exception $e) {}
+    try {
+        $pdo->exec("ALTER TABLE messages ADD COLUMN file_content LONGBLOB");
+    } catch (Exception $e) {}
     
     // 5. Create comments table
     $pdo->exec("CREATE TABLE IF NOT EXISTS comments (
