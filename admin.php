@@ -11,7 +11,7 @@ if (isset($_SESSION['user_id'])) {
     $stmt = $pdo_social->prepare("SELECT username FROM users WHERE id = ?");
     $stmt->execute([$_SESSION['user_id']]);
     $user_social = $stmt->fetch();
-    if ($user_social && ($user_social['username'] === 'OSRG' || $user_social['username'] === 'backup')) {
+    if ($user_social && ($user_social['username'] === 'OSRG' || $user_social['username'] === 'backup' || $user_social['username'] === 'Omer Shalom Rimon')) {
         $isAdmin = true;
     }
 }
