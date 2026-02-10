@@ -134,6 +134,16 @@ function init_db() {
         UNIQUE KEY unique_reaction (post_id, user_id, reaction_type)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
     
+    // 7. Create remember_tokens table
+    $pdo->exec("CREATE TABLE IF NOT EXISTS remember_tokens (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        token VARCHAR(64) NOT NULL,
+        expires INT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
     return $pdo;
 }
 

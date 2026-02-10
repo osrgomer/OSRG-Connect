@@ -29,11 +29,15 @@ if ($_POST['username'] ?? false) {
                 
                 // Handle Remember Me
                 if (isset($_POST['remember_me'])) {
-                    $token = bin2hex(random_bytes(32));
-                    $expires = time() + (30 * 24 * 60 * 60);
-                    $stmt = $pdo->prepare("INSERT INTO remember_tokens (user_id, token, expires) VALUES (?, ?, ?)");
-                    $stmt->execute([$user['id'], $token, $expires]);
-                    setcookie('remember_token', $token, $expires, '/', '', true, true);
+                    try {
+                        $token = bin2hex(random_bytes(32));
+                        $expires = time() + (30 * 24 * 60 * 60);
+                        $stmt = $pdo->prepare("INSERT INTO remember_tokens (user_id, token, expires) VALUES (?, ?, ?)");
+                        $stmt->execute([$user['id'], $token, $expires]);
+                        setcookie('remember_token', $token, $expires, '/', '', true, true);
+                    } catch (Exception $e) {
+                        // Ignore remember me failure
+                    }
                 }
                 
                 header('Location: index.php');
