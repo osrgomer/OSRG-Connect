@@ -16,19 +16,30 @@ require_once 'config.php';
 require_once 'config_keys.php';
 
 $raw_input = file_get_contents('php://input');
+
+// Handle empty input
+if (empty($raw_input)) {
+    http_response_code(400);
+    echo json_encode(['error' => 'No data received. Please try again.']);
+    exit;
+}
+
 $data = json_decode($raw_input, true);
 
 if (json_last_error() !== JSON_ERROR_NONE) {
     http_response_code(400);
-    echo json_encode(['error' => 'Invalid JSON input: ' . json_last_error_msg()]);
+    echo json_encode([
+        'error' => 'Invalid JSON input: ' . json_last_error_msg(),
+        'raw_input' => substr($raw_input, 0, 200) // First 200 chars for debugging
+    ]);
     exit;
 }
 
 $topic = $data['topic'] ?? '';
 
-if (!$topic) {
+if (empty(trim($topic))) {
     http_response_code(400);
-    echo json_encode(['error' => 'Missing topic parameter']);
+    echo json_encode(['error' => 'Topic cannot be empty']);
     exit;
 }
 
