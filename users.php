@@ -11,9 +11,26 @@ $pdo = get_db();
 // Handle add friend
 if ($_GET['add'] ?? false) {
     try {
-        // Use MySQL syntax instead of SQLite
+        $friend_id = $_GET['add'];
+        
+        // Insert friend request
         $stmt = $pdo->prepare("INSERT IGNORE INTO friends (user_id, friend_id, status) VALUES (?, ?, 'pending')");
-        $stmt->execute([$_SESSION['user_id'], $_GET['add']]);
+        $stmt->execute([$_SESSION['user_id'], $friend_id]);
+        
+        // Get current user's username for the notification
+        $stmt_user = $pdo->prepare("SELECT username FROM users WHERE id = ?");
+        $stmt_user->execute([$_SESSION['user_id']]);
+        $current_user = $stmt_user->fetch();
+        
+        // Create notification for the recipient
+        try {
+            $notif_text = $current_user['username'] . " sent you a friend request";
+            $stmt_notif = $pdo->prepare("INSERT INTO user_activity (user_id, type, description, link) VALUES (?, 'friend_request', ?, 'friends.php')");
+            $stmt_notif->execute([$friend_id, $notif_text]);
+        } catch (Exception $e) {
+            // Continue even if notification fails
+        }
+        
         $message = 'Friend request sent!';
     } catch (Exception $e) {
         $message = 'Could not send friend request. Please try again.';

@@ -32,7 +32,7 @@ try {
     $isAdmin = $currentUser && ($currentUser['username'] === 'OSRG' || $currentUser['username'] === 'backup' || $currentUser['username'] === 'Omer Shalom Rimon');
     
     // Build Query
-    // Normal users see: public activities OR their own
+    // Regular users see: their own notifications (friend requests targeted at them) + public activities
     // Admin sees: all public activities AND 'system' type notifications (registrations)
     
     $sql = "
@@ -44,10 +44,17 @@ try {
     
     if ($isAdmin) {
         // Admin sees everything, including system notifications
-        $sql .= " (ua.type = 'system' OR ua.type != 'system') "; // Effectively everything, explicit for clarity
+        $sql .= " (ua.type = 'system' OR ua.type != 'system') "; // Effectively everything
     } else {
-        // Regular users DON'T see system notifications (registrations)
-        $sql .= " ua.type != 'system' ";
+        // Regular users see:
+        // 1. Friend requests sent TO them (where user_id = their ID and type = 'friend_request')
+        // 2. Other public activities (excluding system notifications)
+        $currentUserId = $currentUser['id'] ?? 0;
+        $sql .= " (
+            (ua.user_id = {$currentUserId} AND ua.type = 'friend_request')
+            OR
+            (ua.type NOT IN ('system', 'friend_request'))
+        ) ";
     }
     
     $sql .= " ORDER BY ua.created_at DESC LIMIT 20";
