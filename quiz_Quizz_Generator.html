@@ -714,20 +714,32 @@
                     showMessage('Please enter a quiz topic.');
                     return;
                 }
+
+                console.log('Generating quiz for topic:', topic);
                 generationStatus.style.display = 'block';
                 generationStatus.textContent = 'Generating quiz...';
                 generateBtn.disabled = true;
+
                 try {
+                    const payload = { topic: topic };
+                    console.log('Sending payload:', payload);
+
                     const response = await fetch('quiz_generate-quiz.php', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ topic: topic })
+                        body: JSON.stringify(payload)
                     });
+
+                    console.log('Response status:', response.status);
+
                     if (!response.ok) {
                         const errorData = await response.json();
+                        console.error('Error response:', errorData);
                         throw new Error(errorData.error || 'Failed to generate quiz.');
                     }
                     const data = await response.json();
+                    console.log('Success response:', data);
+
                     const quiz = data.quiz;
                     if (!Array.isArray(quiz) || !quiz[0]?.question) {
                         showMessage('Quiz format invalid. Try again.');
@@ -747,6 +759,7 @@
                     generationStatus.style.display = 'none';
                     showMessage('New quiz loaded!');
                 } catch (err) {
+                    console.error('Quiz generation error:', err);
                     showMessage('Error: ' + err.message);
                     generationStatus.style.display = 'none';
                 } finally {

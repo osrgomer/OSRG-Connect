@@ -48,12 +48,13 @@ try {
     } else {
         // Regular users see:
         // 1. Friend requests sent TO them (where user_id = their ID and type = 'friend_request')
-        // 2. Other public activities (excluding system notifications)
+        // 2. Messages sent TO them (where user_id = their ID and type = 'message')
+        // 3. Other public activities (excluding system notifications)
         $currentUserId = $currentUser['id'] ?? 0;
         $sql .= " (
-            (ua.user_id = {$currentUserId} AND ua.type = 'friend_request')
+            (ua.user_id = {$currentUserId} AND ua.type IN ('friend_request', 'message'))
             OR
-            (ua.type NOT IN ('system', 'friend_request'))
+            (ua.type NOT IN ('system', 'friend_request', 'message'))
         ) ";
     }
     
