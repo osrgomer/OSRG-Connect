@@ -42,7 +42,7 @@ if ($_POST['username'] ?? false) {
                 $error = 'Your account is pending approval.';
             }
         } 
-        }
+        
         // 1.5 Try Auto-Recovery from SQLite (The "Missing Account" Fix)
         elseif (file_exists('private_social.db')) {
             try {
