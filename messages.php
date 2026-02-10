@@ -50,11 +50,12 @@ if ((isset($_POST['content']) || isset($_FILES['attachment'])) && $friend_id) {
         $stmt = $pdo->prepare("INSERT INTO messages (sender_id, receiver_id, content, file_path, file_type, file_content) VALUES (?, ?, ?, ?, ?, ?)");
         $stmt->execute([$_SESSION['user_id'], $friend_id, $content, $file_path, $file_type, $file_content]);
         
-        // Check if receiver wants email notifications
+        // Get sender and receiver info for notifications
         $stmt = $pdo->prepare("SELECT u.email, u.username, u.email_notifications, s.username as sender_name FROM users u, users s WHERE u.id = ? AND s.id = ?");
         $stmt->execute([$friend_id, $_SESSION['user_id']]);
         $notification_data = $stmt->fetch();
         
+        // Send email notification if enabled
         if ($notification_data && $notification_data['email_notifications']) {
             $subject = "New Message - OSRG Connect";
             $body = "Hi " . $notification_data['username'] . ",\n\n";
@@ -73,7 +74,7 @@ if ((isset($_POST['content']) || isset($_FILES['attachment'])) && $friend_id) {
             mail($notification_data['email'], $subject, $body, $headers);
         }
         
-        // Create in-app notification for the recipient
+        // Create in-app notification for the recipient (ALWAYS, regardless of email preferences)
         try {
             $sender_name = $notification_data['sender_name'] ?? 'Someone';
             $message_preview = !empty($content) ? substr($content, 0, 50) : '📎 Sent an attachment';

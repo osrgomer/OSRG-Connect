@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quiz Generator - DC & More</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         /* Custom styles for the quiz */
         body {
@@ -141,7 +142,23 @@
         <div id="quiz-content">
             <div class="flex justify-between items-center mb-6">
                 <h1 class="text-3xl font-extrabold text-gray-800">Quiz Generator</h1>
-                <button id="translate-btn" class="action-button w-auto px-4 py-2 ml-4">Translate to Hebrew</button>
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <!-- Notification Bell -->
+                    <div style="position: relative;">
+                        <a href="#" id="notif-bell" style="position: relative; text-decoration: none;">
+                            <i class="fas fa-bell" style="font-size: 20px; color: #333;"></i>
+                            <span id="notif-badge"
+                                style="display: none; position: absolute; top: -5px; right: -8px; background: #e74c3c; color: white; border-radius: 50%; padding: 2px 6px; font-size: 10px; font-weight: bold;"></span>
+                        </a>
+                        <div id="notif-dropdown"
+                            style="display: none; position: absolute; right: 0; top: 35px; background: white; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); width: 320px; max-height: 400px; overflow-y: auto; z-index: 1000;">
+                            <div style="padding: 12px; border-bottom: 1px solid #eee; font-weight: 600; color: #333;">
+                                Notifications</div>
+                            <div id="notif-list"></div>
+                        </div>
+                    </div>
+                    <button id="translate-btn" class="action-button w-auto px-4 py-2">Translate to Hebrew</button>
+                </div>
             </div>
 
             <!-- Quiz Generation UI -->
@@ -724,7 +741,7 @@
                     const payload = { topic: topic };
                     console.log('Sending payload:', payload);
 
-                    const response = await fetch('quiz_generate-quiz.php', {
+                    const response = await fetch('/quiz_generate-quiz.php', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
@@ -784,7 +801,94 @@
                 loadQuestion(); // Start the quiz
                 // Show generator area by default
                 generatorArea.style.display = 'block';
+
+                // Setup notifications
+                setupNotifications();
             };
+
+            // Notification System
+            function setupNotifications() {
+                const bell = document.getElementById('notif-bell');
+                const dropdown = document.getElementById('notif-dropdown');
+
+                if (!bell) return; // Not logged in
+
+                bell.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+                });
+
+                // Close dropdown when clicking outside
+                document.addEventListener('click', (e) => {
+                    if (!e.target.closest('#notif-bell') && !e.target.closest('#notif-dropdown')) {
+                        dropdown.style.display = 'none';
+                    }
+                });
+
+                // Fetch notifications
+                fetchNotifications();
+                setInterval(fetchNotifications, 30000); // Refresh every 30 seconds
+            }
+
+            function fetchNotifications() {
+                fetch('/series_api_activity.php')
+                    .then(res => res.json())
+                    .then(data => {
+                        const activities = data.activities || [];
+                        updateNotificationBell(activities);
+                    })
+                    .catch(err => console.error('Failed to fetch notifications:', err));
+            }
+
+            function updateNotificationBell(activities) {
+                const badge = document.getElementById('notif-badge');
+                const list = document.getElementById('notif-list');
+
+                if (!badge || !list) return;
+
+                const unreadCount = activities.length;
+
+                if (unreadCount > 0) {
+                    badge.textContent = unreadCount;
+                    badge.style.display = 'block';
+                } else {
+                    badge.style.display = 'none';
+                }
+
+                list.innerHTML = '';
+
+                if (activities.length === 0) {
+                    list.innerHTML = '<div style="padding: 20px; text-align: center; color: #999;">No new notifications</div>';
+                } else {
+                    activities.forEach(activity => {
+                        const item = document.createElement('a');
+                        item.href = activity.link || '#';
+                        item.style.cssText = 'display: block; padding: 12px; border-bottom: 1px solid #eee; text-decoration: none; color: #333; transition: background 0.2s;';
+                        item.onmouseover = () => item.style.background = '#f5f5f5';
+                        item.onmouseout = () => item.style.background = 'white';
+
+                        const time = new Date(activity.timestamp * 1000);
+                        const timeAgo = getTimeAgo(time);
+
+                        item.innerHTML = `
+                            <div style="font-size: 14px; margin-bottom: 4px;">${activity.text || activity.description}</div>
+                            <div style="font-size: 11px; color: #999;">${timeAgo}</div>
+                        `;
+                        list.appendChild(item);
+                    });
+                }
+            }
+
+            function getTimeAgo(date) {
+                const seconds = Math.floor((new Date() - date) / 1000);
+                if (seconds < 60) return 'Just now';
+                const minutes = Math.floor(seconds / 60);
+                if (minutes < 60) return minutes + 'm ago';
+                const hours = Math.floor(minutes / 60);
+                if (hours < 24) return hours + 'h ago';
+                const days = Math.floor(hours / 24);
+                return days + 'd ago';
+            }
         </script>
 </body>
 
