@@ -6,6 +6,9 @@ $error = '';
 if ($_POST['username'] ?? false) {
     $identifier = $_POST['username'];
     $password = $_POST['password'];
+
+    // Debug logging for authentication issues
+    @file_put_contents(__DIR__ . '/login_debug.log', "[" . date('c') . "] POST login attempt - host: " . ($_SERVER['HTTP_HOST'] ?? '') . " | cookie_consent_request: " . ($_REQUEST['cookie_consent'] ?? 'NULL') . " | cookie_consent_cookie: " . ($_COOKIE['cookie_consent'] ?? 'NULL') . " | session_status: " . (session_status() === PHP_SESSION_ACTIVE ? 'active' : session_status()) . PHP_EOL, FILE_APPEND);
     
     // Check if we're on local environment
     $is_local = strpos($_SERVER['HTTP_HOST'], 'osrg.local') !== false || strpos($_SERVER['HTTP_HOST'], 'connect.osrg.lol') !== false;
@@ -20,6 +23,8 @@ if ($_POST['username'] ?? false) {
         $stmt = $pdo->prepare("SELECT * FROM users WHERE username = ? OR email = ?");
         $stmt->execute([$identifier, $identifier]);
         $user = $stmt->fetch();
+        
+        @file_put_contents(__DIR__ . '/login_debug.log', "[" . date('c') . "] DB lookup result: " . ($user ? "FOUND user_id=" . $user['id'] . ", username=" . $user['username'] . ", email=" . $user['email'] . ", approved=" . $user['approved'] : "NO USER") . PHP_EOL, FILE_APPEND);
         
         $password_hash_field = $user['password_hash'] ?? null;
         $password_plain_field = $user['password'] ?? null;
