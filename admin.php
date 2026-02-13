@@ -104,11 +104,70 @@ if ($_GET['website_backup'] ?? false) {
     }
 }
 
+// Handle coupon creation
+if ($_POST['create_coupon'] ?? false) {
+    $recipient = trim($_POST['coupon_recipient'] ?? '');
+    $code = trim($_POST['coupon_code'] ?? '');
+    if (empty($recipient)) {
+        $message = 'Please provide recipient username or ID for the coupon.';
+    } else {
+        try {
+            if (ctype_digit($recipient)) {
+                $stmt = $pdo_social->prepare('SELECT id, username FROM users WHERE id = ?');
+                $stmt->execute([$recipient]);
+            } else {
+                $stmt = $pdo_social->prepare('SELECT id, username FROM users WHERE username = ?');
+                $stmt->execute([$recipient]);
+            }
+            $rec = $stmt->fetch();
+            if (!$rec) {
+                $message = 'Recipient not found.';
+            } else {
+                // ensure coupons table exists
+                $pdo_social->exec("CREATE TABLE IF NOT EXISTS coupons (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    code VARCHAR(255) NOT NULL,
+                    created_by INT DEFAULT NULL,
+                    assigned_to INT DEFAULT NULL,
+                    used_by INT DEFAULT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    expires_at DATETIME DEFAULT NULL,
+                    used_at TIMESTAMP NULL,
+                    INDEX(code)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+                if (empty($code)) {
+                    try { $code = bin2hex(random_bytes(5)); } catch (Exception $e) { $code = substr(md5(uniqid('', true)), 0, 10); }
+                }
+
+                $expires_at = date('Y-m-d H:i:s', strtotime('+5 hours'));
+
+                $stmt_ins = $pdo_social->prepare('INSERT INTO coupons (code, created_by, assigned_to, expires_at) VALUES (?, ?, ?, ?)');
+                $stmt_ins->execute([$code, $_SESSION['user_id'], $rec['id'], $expires_at]);
+
+                $msg_content = 'COUPON: ' . $code;
+                $stmt_msg = $pdo_social->prepare('INSERT INTO messages (sender_id, receiver_id, content) VALUES (?, ?, ?)');
+                $stmt_msg->execute([$_SESSION['user_id'], $rec['id'], $msg_content]);
+
+                try {
+                    $stmt_not = $pdo_social->prepare('INSERT INTO user_activity (user_id, type, description, link) VALUES (?, ?, ?, ?)');
+                    $stmt_not->execute([$rec['id'], 'coupon', 'Received a coupon code from Admin', 'messages.php?friend=' . $_SESSION['user_id']]);
+                } catch (Exception $e) { /* ignore */ }
+
+                $message = 'Coupon created and sent to ' . htmlspecialchars($rec['username']) . ' (Code: ' . htmlspecialchars($code) . ')';
+            }
+        } catch (Exception $e) {
+            $message = 'Coupon creation failed: ' . $e->getMessage();
+        }
+    }
+}
+
 // --- DATA FETCHING ---
 
 // Fetch Social Platform Data
+try { $pdo_social->exec("ALTER TABLE users ADD COLUMN coupon_unlocked TINYINT DEFAULT 0"); } catch (Exception $e) {}
 $pending_users = $pdo_social->query("SELECT id, username, email, created_at FROM users WHERE approved = 0 ORDER BY created_at DESC")->fetchAll();
-$all_social_users = $pdo_social->query("SELECT id, username, email, created_at, approved FROM users ORDER BY created_at DESC")->fetchAll();
+$all_social_users = $pdo_social->query("SELECT id, username, email, created_at, approved, COALESCE(coupon_unlocked,0) AS coupon_unlocked FROM users ORDER BY created_at DESC")->fetchAll();
 $all_posts = $pdo_social->query("SELECT p.id, p.content, p.created_at, u.username FROM posts p JOIN users u ON p.user_id = u.id ORDER BY p.created_at DESC")->fetchAll();
 
 $social_stats = [
@@ -137,7 +196,8 @@ $page_title = 'Unified Command Centre';
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="<?php echo $base_path ?? ''; ?>sp_assets/tailwind.min.css">
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body {
@@ -311,6 +371,7 @@ $page_title = 'Unified Command Centre';
                             <tr class="bg-white/5 text-[10px] uppercase tracking-widest text-slate-500">
                                 <th class="p-4">Username</th>
                                 <th class="p-4">Email</th>
+                                <th class="p-4 text-center">Coupon</th>
                                 <th class="p-4 text-center">Approved</th>
                                 <th class="p-4">Joined</th>
                                 <th class="p-4 text-right">Actions</th>
@@ -321,6 +382,7 @@ $page_title = 'Unified Command Centre';
                                 <tr class="hover:bg-white/5 transition-colors">
                                     <td class="p-4 font-bold"><?= htmlspecialchars($user['username']) ?></td>
                                     <td class="p-4 text-slate-400"><?= htmlspecialchars($user['email']) ?></td>
+                                    <td class="p-4 text-center"><?= !empty($user['coupon_unlocked']) ? '<i class="fas fa-gift text-green-500" title="Unlocked"></i>' : '' ?></td>
                                     <td class="p-4 text-center">
                                         <i class="fas <?= $user['approved'] ? 'fa-check-circle text-green-500' : 'fa-times-circle text-yellow-500' ?>"></i>
                                     </td>
@@ -413,6 +475,46 @@ $page_title = 'Unified Command Centre';
                 </div>
             </div>
         </div>
+    <div class="glass-card rounded-2xl p-6">
+        <h3 class="font-bold">Coupon Generator</h3>
+        <form method="POST" class="mt-4 space-y-3">
+            <div>
+                <label class="text-sm text-slate-400">Recipient (username or ID)</label>
+                <input type="text" name="coupon_recipient" class="w-full mt-1 p-2 rounded bg-black/20 border border-white/5 text-sm" placeholder="username or id">
+            </div>
+            <div>
+                <label class="text-sm text-slate-400">Coupon Code (leave empty to auto-generate)</label>
+                <input type="text" id="coupon_code" name="coupon_code" class="w-full mt-1 p-2 rounded bg-black/20 border border-white/5 text-sm" placeholder="e.g. ABC-123-XYZ">
+            </div>
+            <div class="flex gap-2">
+                <select id="code_type" class="p-2 rounded bg-black/20 border border-white/5 text-sm">
+                    <option value="alnum">Alphanumeric</option>
+                    <option value="num">Numbers only</option>
+                    <option value="hex">Hex</option>
+                </select>
+                <input id="code_len" type="number" value="8" min="4" max="32" class="w-20 p-2 rounded bg-black/20 border border-white/5 text-sm">
+                <button type="button" onclick="generateCoupon()" class="px-3 py-2 bg-cyan-500 rounded text-black font-bold">Generate</button>
+            </div>
+            <div>
+                <button type="submit" name="create_coupon" value="1" class="w-full py-2 bg-gradient-to-r from-cyan-500 to-indigo-600 rounded-lg font-bold text-sm uppercase">Create & Send Coupon</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        function generateCoupon() {
+            var type = document.getElementById('code_type').value;
+            var len = parseInt(document.getElementById('code_len').value) || 8;
+            var out = '';
+            if (type === 'num') {
+                for (var i=0;i<len;i++) out += Math.floor(Math.random()*10);
+            } else if (type === 'hex') {
+                var hex = '0123456789abcdef'; for (var i=0;i<len;i++) out += hex[Math.floor(Math.random()*16)];
+            } else { var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'; for (var i=0;i<len;i++) out += chars[Math.floor(Math.random()*chars.length)]; }
+            document.getElementById('coupon_code').value = out;
+        }
+    </script>
+
     </main>
 
     <script>
@@ -432,7 +534,8 @@ $page_title = 'Unified Command Centre';
         async function fetchRealTimeData() {
             try {
                 const res = await fetch('series_api_admin.php?action=get_stats');
-                const data = await res.json();
+                if (!res.ok) return;
+                const data = await res.json().catch(() => ({}));
                 if (!data.success) return;
 
                 // Update server load
@@ -450,7 +553,7 @@ $page_title = 'Unified Command Centre';
                 // Update Trending
                 renderTrending(data.trending);
                 
-            } catch (err) { console.error('Fetch error:', err); }
+            } catch (err) { console.debug('Fetch error (suppressed):', err); }
         }
 
         function renderBubbleMap(bubbles) {

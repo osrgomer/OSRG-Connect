@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Find MySQL Credentials - SeriesList</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="sp_assets/tailwind.min.css">
+
 </head>
 <body class="bg-slate-50 min-h-screen p-8">
     <div class="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl p-8">

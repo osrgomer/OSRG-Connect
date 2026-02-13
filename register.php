@@ -202,11 +202,38 @@ if ($_POST['username'] ?? false) {
                 <button type="submit" id="submitBtn">Register</button>
             </div>
             <input type="hidden" name="g-recaptcha-response" id="g-recaptcha-response">
+            <input type="hidden" name="cookie_consent" id="cookie_consent_input">
         </form>
 
         <p style="text-align: center; margin-top: 20px;">
             Already have an account? <a href="login.php">Login here</a>
         </p>
     </div>
+
+<!-- Cookie consent banner -->
+<div id="cookieBanner" style="position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid #ddd;padding:12px;display:none;justify-content:space-between;align-items:center;gap:12px;z-index:9999;">
+  <div style="font-size:14px;color:#333;">This site uses cookies to improve your experience. Do you accept cookies?</div>
+  <div>
+    <button id="cookieAcceptBtn" style="background:#1877f2;color:#fff;border:none;padding:8px 12px;border-radius:4px;cursor:pointer;margin-right:8px;">Accept</button>
+    <button id="cookieDeclineBtn" style="background:#ddd;color:#333;border:none;padding:8px 12px;border-radius:4px;cursor:pointer;">Decline</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  function setHiddenConsent(val){ var el = document.getElementById('cookie_consent_input'); if(el) el.value = val; }
+  var consent = localStorage.getItem('cookie_consent') || (document.cookie.match(/(^|; )cookie_consent=([^;]+)/)? RegExp.$2 : null);
+  if(consent === 'accepted'){ document.cookie = 'cookie_consent=accepted; path=/'; setHiddenConsent('accepted'); var b=document.getElementById('cookieBanner'); if(b) b.remove(); }
+  else if(consent === 'declined'){ setHiddenConsent('declined'); var b=document.getElementById('cookieBanner'); if(b) b.remove(); }
+  else {
+    var b=document.getElementById('cookieBanner'); if(b) b.style.display = 'flex';
+  }
+  document.getElementById('cookieAcceptBtn').addEventListener('click', function(){ localStorage.setItem('cookie_consent','accepted'); document.cookie='cookie_consent=accepted; path=/'; setHiddenConsent('accepted'); var b=document.getElementById('cookieBanner'); if(b) b.remove(); });
+  document.getElementById('cookieDeclineBtn').addEventListener('click', function(){ localStorage.setItem('cookie_consent','declined'); setHiddenConsent('declined'); var b=document.getElementById('cookieBanner'); if(b) b.remove(); });
+  var forms = document.querySelectorAll('form');
+  forms.forEach(function(f){ f.addEventListener('submit', function(){ setHiddenConsent(localStorage.getItem('cookie_consent') || 'accepted'); }); });
+})();
+</script>
+
 </body>
 </html>

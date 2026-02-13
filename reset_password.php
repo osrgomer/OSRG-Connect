@@ -6,29 +6,60 @@ $error = '';
 $valid_token = false;
 
 // Check if token is provided and valid
-if ($_GET['token'] ?? false) {
+if (!empty($_GET['token'])) {
+    // Ensure DB schema exists (safe no-op if already initialized)
+    if (function_exists('init_db')) {
+        try { init_db(); } catch (Exception $e) { /* ignore */ }
+    }
+
     $pdo = get_db();
-    $stmt = $pdo->prepare("SELECT pr.*, u.username FROM password_resets pr JOIN users u ON pr.user_id = u.id WHERE pr.token = ? AND pr.expires > datetime('now')");
-    $stmt->execute([$_GET['token']]);
-    $reset_data = $stmt->fetch();
-    
+    $reset_data = false;
+
+    // Try MySQL-compatible query first, fall back to SQLite-style if needed
+    try {
+        $stmt = $pdo->prepare("SELECT pr.*, u.username FROM password_resets pr JOIN users u ON pr.user_id = u.id WHERE pr.token = ? AND pr.expires > NOW()");
+        $stmt->execute([$_GET['token']]);
+        $reset_data = $stmt->fetch();
+    } catch (Exception $e) {
+        try {
+            $stmt = $pdo->prepare("SELECT pr.*, u.username FROM password_resets pr JOIN users u ON pr.user_id = u.id WHERE pr.token = ? AND pr.expires > datetime('now')");
+            $stmt->execute([$_GET['token']]);
+            $reset_data = $stmt->fetch();
+        } catch (Exception $e) {
+            $reset_data = false;
+        }
+    }
+
     if ($reset_data) {
         $valid_token = true;
-        
+
         // Handle password reset
-        if ($_POST['password'] ?? false) {
-            if ($_POST['password'] === $_POST['confirm_password']) {
+        if (!empty($_POST['password'])) {
+            if ($_POST['password'] === ($_POST['confirm_password'] ?? '')) {
                 $password_hash = password_hash($_POST['password'], PASSWORD_DEFAULT);
-                
-                // Update password
-                $stmt = $pdo->prepare("UPDATE users SET password_hash = ? WHERE id = ?");
-                $stmt->execute([$password_hash, $reset_data['user_id']]);
-                
-                // Delete used token
-                $stmt = $pdo->prepare("DELETE FROM password_resets WHERE token = ?");
-                $stmt->execute([$_GET['token']]);
-                
-                $message = 'Password reset successful! <a href="login.php">Login here</a>';
+
+                // Try to update preferred password_hash column, fallback to password
+                try {
+                    $stmt = $pdo->prepare("UPDATE users SET password_hash = ? WHERE id = ?");
+                    $stmt->execute([$password_hash, $reset_data['user_id']]);
+                } catch (Exception $e) {
+                    try {
+                        $stmt = $pdo->prepare("UPDATE users SET password = ? WHERE id = ?");
+                        $stmt->execute([$password_hash, $reset_data['user_id']]);
+                    } catch (Exception $e) {
+                        $error = 'Failed to update password. Please contact admin.';
+                    }
+                }
+
+                // Delete used token (ignore errors)
+                try {
+                    $stmt = $pdo->prepare("DELETE FROM password_resets WHERE token = ?");
+                    $stmt->execute([$_GET['token']]);
+                } catch (Exception $e) { /* ignore */ }
+
+                if (empty($error)) {
+                    $message = 'Password reset successful! <a href="login.php">Login here</a>';
+                }
             } else {
                 $error = 'Passwords do not match.';
             }

@@ -53,6 +53,7 @@ $extra_head = '
     </style>
 ';
 $extra_buttons = '
+    <a href="index.php" class="text-indigo-600 hover:underline inline-block mr-4" aria-label="Back to Main Page">← Back to Main Page</a>
     <button id="settingsBtn" class="p-2 text-slate-400 dark:text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700" aria-label="Settings">
         <i class="fas fa-cog"></i>
     </button>
@@ -65,6 +66,8 @@ $extra_buttons = '
 ';
 include 'series_header.php';
 ?>
+
+
 
     <main class="max-w-5xl mx-auto p-4 space-y-6">
         <!-- Connection Banner -->

@@ -19,12 +19,8 @@
     }
     ?>
     <script src="<?php echo $base_path ?? ''; ?>theme.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class'
-        }
-    </script>
+    <link rel="stylesheet" href="/sp_assets/tailwind.min.css">
+
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <?php echo $extra_head ?? ''; ?>
 </head>
@@ -230,7 +226,7 @@
                     document.getElementById('notifList').innerHTML = '<p class="px-4 py-8 text-center text-sm text-slate-500 dark:text-slate-400">No new notifications</p>';
                 }
             } catch (error) {
-                console.error('Error loading notifications:', error);
+                console.debug('Error loading notifications (suppressed):', error);
             }
         }
         

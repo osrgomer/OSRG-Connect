@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Database Setup - SeriesList</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="sp_assets/tailwind.min.css">
+
 </head>
 <body class="bg-slate-50 min-h-screen flex items-center justify-center p-4">
     <div class="max-w-2xl w-full bg-white rounded-2xl shadow-xl p-8">

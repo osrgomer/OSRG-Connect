@@ -18,7 +18,8 @@ $is_authed = isset($_SESSION['authenticated']) && $_SESSION['authenticated'];
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MineMod Archive - Modding Intel</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💎</text></svg>">
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="<?php echo $base_path ?? ''; ?>sp_assets/tailwind.min.css">
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;600;800&display=swap');
         

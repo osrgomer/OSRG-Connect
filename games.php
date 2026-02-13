@@ -176,6 +176,20 @@ require_once 'header.php';
         <p class="game-description">Explore the galaxy and battle aliens in this space shooter game.</p>
         <a href="space_adventure.php" class="play-button">Play Now</a>
     </div>
+
+    <div class="game-card">
+        <span class="game-icon">🧠</span>
+        <h3 class="game-title">Trivia Hub</h3>
+        <p class="game-description">10-question quizzes: The Rookie, Arrow, NYC, Technology.</p>
+        <a href="series_trivia.php" class="play-button">Play Trivia</a>
+    </div>
+
+    <div class="game-card">
+        <span class="game-icon">🎮</span>
+        <h3 class="game-title">Valley Game</h3>
+        <p class="game-description">External fan-made game hosted on osrg.lol.</p>
+        <a href="https://osrg.lol/osrg/valley_game/" class="play-button" target="_blank" rel="noopener noreferrer">Open Valley Game</a>
+    </div>
     </div>
 </div>
 
