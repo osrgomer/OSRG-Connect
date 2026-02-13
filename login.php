@@ -193,7 +193,7 @@ if ($_POST['username'] ?? false) {
     </script>
     
     <!-- reCAPTCHA v3 (only on production) -->
-    <?php if (strpos($_SERVER['HTTP_HOST'], 'osrg.local') === false): ?>
+    <?php if (strpos($_SERVER['HTTP_HOST'], 'osrg.local') === false && strpos($_SERVER['HTTP_HOST'], 'connect.osrg.lol') === false): ?>
     <script src="https://www.google.com/recaptcha/api.js?render=<?= RECAPTCHA_SITE_KEY ?>"></script>
     <?php endif; ?>
     <style>
@@ -230,7 +230,7 @@ if ($_POST['username'] ?? false) {
         }
         
         // reCAPTCHA v3 integration (only on production)
-        <?php if (strpos($_SERVER['HTTP_HOST'], 'osrg.local') === false): ?>
+        <?php if (strpos($_SERVER['HTTP_HOST'], 'osrg.local') === false && strpos($_SERVER['HTTP_HOST'], 'connect.osrg.lol') === false): ?>
         document.addEventListener('DOMContentLoaded', function() {
             const form = document.getElementById('loginForm');
             form.addEventListener('submit', function(e) {
