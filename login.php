@@ -2,6 +2,7 @@
 require_once 'config.php';
 
 $error = '';
+$debug_info = '';
 
 if ($_POST['username'] ?? false) {
     $identifier = $_POST['username'];
@@ -25,6 +26,22 @@ if ($_POST['username'] ?? false) {
         $user = $stmt->fetch();
         
         @file_put_contents(__DIR__ . '/login_debug.log', "[" . date('c') . "] DB lookup result: " . ($user ? "FOUND user_id=" . $user['id'] . ", username=" . $user['username'] . ", email=" . $user['email'] . ", approved=" . $user['approved'] : "NO USER") . PHP_EOL, FILE_APPEND);
+
+$tmpLog = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'osrg_login_debug.log';
+$dbg = [
+    'cookie_consent_request' => 
+        (isset($_REQUEST['cookie_consent']) ? $_REQUEST['cookie_consent'] : 'NULL'),
+    'cookie_consent_cookie' => 
+        (isset($_COOKIE['cookie_consent']) ? $_COOKIE['cookie_consent'] : 'NULL'),
+    'session_status' => (session_status() === PHP_SESSION_ACTIVE ? 'active' : session_status()),
+    'user_found' => $user ? 1 : 0,
+    'user_id' => $user['id'] ?? 'NULL',
+    'user_approved' => $user['approved'] ?? 'NULL',
+    'password_hash_present' => $password_hash_field ? 1 : 0,
+    'password_plain_present' => $password_plain_field ? 1 : 0,
+];
+@file_put_contents($tmpLog, "[" . date('c') . "] " . print_r($dbg, true) . PHP_EOL, FILE_APPEND);
+$debug_info = '<pre>' . htmlspecialchars(print_r($dbg, true)) . '</pre>';
         
         $password_hash_field = $user['password_hash'] ?? null;
         $password_plain_field = $user['password'] ?? null;
@@ -259,6 +276,9 @@ if ($_POST['username'] ?? false) {
 
         <?php if ($error): ?>
             <div class="error"><?= $error ?></div>
+        <?php endif; ?>
+        <?php if (!empty($debug_info)): ?>
+            <div style="background:#f9f9f9;border:1px solid #eee;padding:10px;margin-top:10px;"><?= $debug_info ?></div>
         <?php endif; ?>
 
         <form method="POST" id="loginForm">
