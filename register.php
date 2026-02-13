@@ -228,8 +228,10 @@ if ($_POST['username'] ?? false) {
   else {
     var b=document.getElementById('cookieBanner'); if(b) b.style.display = 'flex';
   }
-  document.getElementById('cookieAcceptBtn').addEventListener('click', function(){ localStorage.setItem('cookie_consent','accepted'); document.cookie='cookie_consent=accepted; path=/'; setHiddenConsent('accepted'); var b=document.getElementById('cookieBanner'); if(b) b.remove(); });
-  document.getElementById('cookieDeclineBtn').addEventListener('click', function(){ localStorage.setItem('cookie_consent','declined'); setHiddenConsent('declined'); var b=document.getElementById('cookieBanner'); if(b) b.remove(); });
+  var acceptBtn = document.getElementById('cookieAcceptBtn');
+  if (acceptBtn) acceptBtn.addEventListener('click', function(){ localStorage.setItem('cookie_consent','accepted'); document.cookie='cookie_consent=accepted; path=/'; setHiddenConsent('accepted'); var b=document.getElementById('cookieBanner'); if(b) b.remove(); });
+  var declineBtn = document.getElementById('cookieDeclineBtn');
+  if (declineBtn) declineBtn.addEventListener('click', function(){ localStorage.setItem('cookie_consent','declined'); setHiddenConsent('declined'); var b=document.getElementById('cookieBanner'); if(b) b.remove(); });
   var forms = document.querySelectorAll('form');
   forms.forEach(function(f){ f.addEventListener('submit', function(){ setHiddenConsent(localStorage.getItem('cookie_consent') || 'accepted'); }); });
 })();
