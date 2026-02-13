@@ -158,6 +158,62 @@ if (($_POST['timezone'] ?? false) && !($_POST['update_profile'] ?? false)) {
     }
 }
 
+// Handle coupon activation
+if ($_POST['activate_coupon'] ?? false) {
+    $coupon_code = trim($_POST['coupon_code'] ?? '');
+    if ($coupon_code === '') {
+        $message = 'Please enter a coupon code.';
+    } else {
+        try {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS coupons (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                code VARCHAR(255) NOT NULL,
+                created_by INT DEFAULT NULL,
+                assigned_to INT DEFAULT NULL,
+                used_by INT DEFAULT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                expires_at DATETIME DEFAULT NULL,
+                used_at TIMESTAMP NULL,
+                INDEX(code)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+        } catch (Exception $e) {}
+
+        try {
+            $stmt = $pdo->prepare('SELECT id, assigned_to, used_by, expires_at, created_at FROM coupons WHERE code = ? LIMIT 1');
+            $stmt->execute([$coupon_code]);
+            $coupon = $stmt->fetch();
+            if (!$coupon) {
+                $message = 'Invalid coupon code.';
+            } else if (!empty($coupon['used_by'])) {
+                $message = 'This coupon has already been used.';
+            } else if (!empty($coupon['assigned_to']) && $coupon['assigned_to'] != $_SESSION['user_id']) {
+                $message = 'This coupon is assigned to a different user.';
+            } else {
+                // Check expiry
+                $now = new DateTime();
+                $expired = false;
+                if (!empty($coupon['expires_at'])) {
+                    try { $expires = new DateTime($coupon['expires_at']); if ($expires < $now) $expired = true; } catch (Exception $e) { }
+                } elseif (!empty($coupon['created_at'])) {
+                    try { $created = new DateTime($coupon['created_at']); $created->add(new DateInterval('PT5H')); if ($created < $now) $expired = true; } catch (Exception $e) { }
+                }
+
+                if ($expired) {
+                    $message = 'This coupon has expired.';
+                } else {
+                    $now_ts = date('Y-m-d H:i:s');
+                    $stmt_upd = $pdo->prepare('UPDATE coupons SET used_by = ?, used_at = ? WHERE id = ?');
+                    $stmt_upd->execute([$_SESSION['user_id'], $now_ts, $coupon['id']]);
+                    try { $pdo->exec("ALTER TABLE users ADD COLUMN coupon_unlocked TINYINT DEFAULT 0"); } catch (Exception $e) {}
+                    $stmt_user = $pdo->prepare('UPDATE users SET coupon_unlocked = 1 WHERE id = ?');
+                    $stmt_user->execute([$_SESSION['user_id']]);
+                    $message = 'Coupon activated! Secret unlocked.';
+                }
+            }
+        } catch (Exception $e) { $message = 'Coupon activation failed: ' . $e->getMessage(); }
+    }
+}
+
 // Common timezones
 $timezones = [
     'Europe/London' => 'London (GMT/BST)',
@@ -239,6 +295,17 @@ $timezones = [
         <?php if ($message): ?>
             <div class="message"><?= $message ?></div>
         <?php endif; ?>
+        
+        <div class="post">
+            <h3>🎟️ Coupon Activation</h3>
+            <form method="POST">
+                <div class="form-group">
+                    <label><strong>Enter Coupon Code:</strong></label>
+                    <input type="text" name="coupon_code" placeholder="Enter code here" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                </div>
+                <button type="submit" name="activate_coupon" value="1">Activate Coupon</button>
+            </form>
+        </div>
         
         <div class="settings-grid">
             <!-- Profile Settings -->
@@ -462,6 +529,16 @@ $timezones = [
             </div>
         </div>
 
+    <?php
+    try {
+        $stmt_chk = $pdo->prepare("SELECT coupon_unlocked FROM users WHERE id = ?");
+        $stmt_chk->execute([$_SESSION['user_id']]);
+        $unlocked = $stmt_chk->fetchColumn();
+    } catch (Exception $e) { $unlocked = 0; }
+    if ($unlocked) {
+        echo '<div class="post" style="margin-top:16px"><h3>🎁 Secret Area</h3><p><a href="secret_reward.php">Open your secret reward</a></p></div>';
+    }
+    ?>
     </div>
 </body>
 </html>

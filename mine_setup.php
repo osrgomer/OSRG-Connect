@@ -26,7 +26,8 @@ if (file_exists($config_file)) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Void Sage | System Initialization</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="sp_assets/tailwind.min.css">
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;600;800&display=swap');
         body { font-family: 'Inter', sans-serif; background-color: #030507; color: #d1d5db; }

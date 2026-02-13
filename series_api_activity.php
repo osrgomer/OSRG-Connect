@@ -3,7 +3,7 @@ session_start();
 header('Content-Type: application/json');
 
 // Check if user is logged in
-if (!isset($_SESSION['user_logged_in']) || $_SESSION['user_logged_in'] !== true) {
+if (!isset($_SESSION['user_id']) && (!isset($_SESSION['user_logged_in']) || $_SESSION['user_logged_in'] !== true)) {
     http_response_code(401);
     echo json_encode(['error' => 'Unauthorized']);
     exit;
@@ -15,7 +15,30 @@ $currentUserName = $_SESSION['user_name'] ?? 'User';
 
 // Connect to DB
 require_once 'series_db.php';
-$pdo = get_db();
+if (!function_exists('get_db') && !function_exists('getDB')) {
+    @include_once 'config.php';
+}
+$pdo = function_exists('get_db') ? get_db() : (function_exists('getDB') ? getDB() : null);
+
+// Fallback: if DB not available, return session-based activities when possible
+if (!$pdo) {
+    $sessionActivities = $_SESSION['user_activity'][$_SESSION['user_id']] ?? [];
+    $activities = [];
+    foreach ($sessionActivities as $act) {
+        $activities[] = [
+            'id' => $act['id'] ?? null,
+            'type' => $act['type'] ?? 'activity',
+            'description' => $act['description'] ?? ($act['action'] ?? ''),
+            'text' => $act['description'] ?? ($act['action'] ?? ''),
+            'link' => $act['link'] ?? null,
+            'timestamp' => isset($act['time']) ? (int)($act['time']) : (isset($act['created_at']) ? strtotime($act['created_at']) : time()),
+            'username' => $act['user']['username'] ?? $act['username'] ?? 'User',
+            'avatar_url' => $act['user']['avatar'] ?? $act['avatar'] ?? null
+        ];
+    }
+    echo json_encode(['activities' => $activities]);
+    exit;
+}
 
 $currentUser = null;
 if (isset($_SESSION['user_id'])) {

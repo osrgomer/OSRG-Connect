@@ -11,7 +11,7 @@ ini_set('display_errors', 0);
 error_reporting(0);
 
 // Check if user is logged in
-if (!isset($_SESSION['user_logged_in']) || $_SESSION['user_logged_in'] !== true) {
+if (!((isset($_SESSION['user_logged_in']) && $_SESSION['user_logged_in'] === true) || isset($_SESSION['user_id']))) {
     echo json_encode(['success' => false, 'error' => 'Not logged in']);
     exit;
 }

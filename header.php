@@ -139,7 +139,10 @@ if (!isset($_SESSION['user_id'])) {
                 const apiUrl = 'series_api_activity.php?bg=1'; 
                 
                 fetch(apiUrl)
-                    .then(response => response.json())
+                    .then(response => {
+                        if (!response.ok) return { activities: [] };
+                        return response.json().catch(() => ({ activities: [] }));
+                    })
                     .then(data => {
                         if (data.activities && data.activities.length > 0) {
                             renderNotifications(data.activities);
@@ -150,7 +153,7 @@ if (!isset($_SESSION['user_id'])) {
                             updateBadge(0);
                         }
                     })
-                    .catch(e => console.error('Notif error:', e));
+                    .catch(() => {});
             }
 
             function renderNotifications(activities) {
@@ -235,6 +238,7 @@ if (!isset($_SESSION['user_id'])) {
         
         <div class="nav-links" id="navLinks">
             <a href="index.php">Home</a>
+            <a href="https://osrg.lol/wiki/Global_News_Today" target="_blank" rel="noopener noreferrer">Global News</a>
             <a href="series_index.php" style="color: #4c1130; font-weight: bold;">📺 Series List</a>
             <a href="reels.php">🎬 Reels</a>
             <a href="games.php">🎮 Games</a>

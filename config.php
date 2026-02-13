@@ -1,18 +1,30 @@
 <?php
-// Set cookie domain before starting session
-if (strpos($_SERVER['HTTP_HOST'], 'connect.osrg.lol') !== false) {
-    ini_set('session.cookie_domain', '.osrg.lol');
+// Determine cookie consent from request or cookie (used to skip cookies/sessions)
+$cookie_consent = $_REQUEST['cookie_consent'] ?? ($_COOKIE['cookie_consent'] ?? null);
+if ($cookie_consent === 'declined') {
+    define('NO_COOKIES', true);
+} else {
+    define('NO_COOKIES', false);
 }
-session_start();
+
+// Set cookie domain and start session only if cookies allowed
+if (!defined('NO_COOKIES') || !NO_COOKIES) {
+    if (strpos($_SERVER['HTTP_HOST'], 'connect.osrg.lol') !== false) {
+        ini_set('session.cookie_domain', '.osrg.lol');
+    }
+    session_start();
+}
+
 date_default_timezone_set('Europe/London');
 
 // Include sensitive keys
 if (file_exists('config_keys.php')) {
     require_once 'config_keys.php';
 }
+require_once 'series_db.php';
 
 // Check for remember me token if not logged in
-if (!isset($_SESSION['user_id']) && isset($_COOKIE['remember_token'])) {
+if ((!defined('NO_COOKIES') || !NO_COOKIES) && !isset($_SESSION['user_id']) && isset($_COOKIE['remember_token'])) {
     $pdo = get_db();
     if ($pdo) {
         try {
@@ -22,6 +34,7 @@ if (!isset($_SESSION['user_id']) && isset($_COOKIE['remember_token'])) {
             
             if ($token_data) {
                 $_SESSION['user_id'] = $token_data['user_id'];
+                $_SESSION['user_logged_in'] = true;
             } else {
                 // Invalid or expired token, remove cookie
                 setcookie('remember_token', '', time() - 3600, '/', '', true, true);

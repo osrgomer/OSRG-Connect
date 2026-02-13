@@ -230,6 +230,7 @@ function generateDifferences() {
         // Calculate position that works for both canvases
         const x = Math.random() * (canvas1.width - 40) + 20;
         const offset = Math.random() * 40 - 20; // Random offset between -20 and 20
+        const hue = Math.floor(Math.random() * 360);
         
         differences.push({
             x1: x,
@@ -237,7 +238,7 @@ function generateDifferences() {
             y: Math.random() * (canvas1.height - 40) + 20,
             radius: 20,
             found: false,
-            color: `hsl(${Math.random() * 360}, 70%, 50%)`
+            hue: hue
         });
     }
 }
@@ -249,10 +250,14 @@ function drawGame() {
     // Draw differences
     differences.forEach((diff) => {
         if (!diff.found) {
+            const h = diff.hue;
+            const colorHSL = `hsl(${h}, 70%, 50%)`;
+            const colorHSLA = `hsla(${h}, 70%, 50%, 0.5)`;
+            
             // Draw circle with gradient on first canvas
             const gradient1 = ctx1.createRadialGradient(diff.x1, diff.y, 0, diff.x1, diff.y, diff.radius);
-            gradient1.addColorStop(0, diff.color);
-            gradient1.addColorStop(1, diff.color.replace(')', ', 0.5)').replace('hsl', 'hsla'));
+            gradient1.addColorStop(0, colorHSL);
+            gradient1.addColorStop(1, colorHSLA);
             
             ctx1.fillStyle = gradient1;
             ctx1.beginPath();
@@ -261,8 +266,8 @@ function drawGame() {
             
             // Draw circle with gradient on second canvas
             const gradient2 = ctx2.createRadialGradient(diff.x2, diff.y, 0, diff.x2, diff.y, diff.radius);
-            gradient2.addColorStop(0, diff.color);
-            gradient2.addColorStop(1, diff.color.replace(')', ', 0.5)').replace('hsl', 'hsla'));
+            gradient2.addColorStop(0, colorHSL);
+            gradient2.addColorStop(1, colorHSLA);
             
             ctx2.fillStyle = gradient2;
             ctx2.beginPath();

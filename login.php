@@ -21,22 +21,44 @@ if ($_POST['username'] ?? false) {
         $stmt->execute([$identifier, $identifier]);
         $user = $stmt->fetch();
         
-        $password_field = isset($user['password_hash']) ? $user['password_hash'] : ($user['password'] ?? '');
+        $password_hash_field = $user['password_hash'] ?? null;
+        $password_plain_field = $user['password'] ?? null;
+        $login_ok = false;
         
-        if ($user && password_verify($password, $password_field)) {
+        if ($user) {
+            if ($password_hash_field && password_verify($password, $password_hash_field)) {
+                $login_ok = true;
+            } elseif ($password_plain_field && $password === $password_plain_field) {
+                // Migrate legacy plaintext password to password_hash
+                $new_hash = password_hash($password, PASSWORD_DEFAULT);
+                try {
+                    $stmt_upd = $pdo->prepare("UPDATE users SET password_hash = ? WHERE id = ?");
+                    $stmt_upd->execute([$new_hash, $user['id']]);
+                } catch (Exception $e) {}
+                $login_ok = true;
+            }
+        }
+        
+        if ($login_ok) {
             if ($user['approved']) {
                 $_SESSION['user_id'] = $user['id'];
+                $_SESSION['user_logged_in'] = true;
+                $_SESSION['user_email'] = $user['email'] ?? '';
+                $_SESSION['username'] = $user['username'] ?? '';
+                $_SESSION['user_name'] = $user['username'] ?? '';
                 
                 // Handle Remember Me
-                if (isset($_POST['remember_me'])) {
-                    try {
-                        $token = bin2hex(random_bytes(32));
-                        $expires = time() + (30 * 24 * 60 * 60);
-                        $stmt = $pdo->prepare("INSERT INTO remember_tokens (user_id, token, expires) VALUES (?, ?, ?)");
-                        $stmt->execute([$user['id'], $token, $expires]);
-                        setcookie('remember_token', $token, $expires, '/', '', true, true);
-                    } catch (Exception $e) {
-                        // Ignore remember me failure
+                if (!defined('NO_COOKIES') || !NO_COOKIES) {
+                    if (isset($_POST['remember_me'])) {
+                        try {
+                            $token = bin2hex(random_bytes(32));
+                            $expires = time() + (30 * 24 * 60 * 60);
+                            $stmt = $pdo->prepare("INSERT INTO remember_tokens (user_id, token, expires) VALUES (?, ?, ?)");
+                            $stmt->execute([$user['id'], $token, $expires]);
+                            setcookie('remember_token', $token, $expires, '/', '', true, true);
+                        } catch (Exception $e) {
+                            // Ignore remember me failure
+                        }
                     }
                 }
                 
@@ -85,6 +107,11 @@ if ($_POST['username'] ?? false) {
                         
                         $new_user_id = $mysql->lastInsertId();
                         $_SESSION['user_id'] = $new_user_id;
+                        // Ensure migrated user has the same session flags as normal login
+                        $_SESSION['user_logged_in'] = true;
+                        $_SESSION['user_email'] = $sqlite_user['email'] ?? '';
+                        $_SESSION['username'] = $sqlite_user['username'] ?? '';
+                        $_SESSION['user_name'] = $sqlite_user['username'] ?? '';
 
                         // Migrate Posts (Instant Recovery)
                         $p_stmt = $sqlite->prepare("SELECT * FROM posts WHERE user_id = ?");
@@ -249,12 +276,39 @@ if ($_POST['username'] ?? false) {
                 <button type="submit" id="submitBtn">Login</button>
             </div>
             <input type="hidden" name="g-recaptcha-response" id="g-recaptcha-response">
+            <input type="hidden" name="cookie_consent" id="cookie_consent_input">
         </form>
 
         <p style="text-align: center; margin-top: 20px;">
             Don't have an account? <a href="register.php">Register here</a><br>
-            <a href="forgot-password" style="color: #666; font-size: 14px;">Forgot Password?</a>
+            <a href="forgot_password.php" style="color: #666; font-size: 14px;">Forgot Password?</a>
         </p>
     </div>
+
+<!-- Cookie consent banner -->
+<div id="cookieBanner" style="position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid #ddd;padding:12px;display:none;justify-content:space-between;align-items:center;gap:12px;z-index:9999;">
+  <div style="font-size:14px;color:#333;">This site uses cookies to improve your experience. Do you accept cookies?</div>
+  <div>
+    <button id="cookieAcceptBtn" style="background:#1877f2;color:#fff;border:none;padding:8px 12px;border-radius:4px;cursor:pointer;margin-right:8px;">Accept</button>
+    <button id="cookieDeclineBtn" style="background:#ddd;color:#333;border:none;padding:8px 12px;border-radius:4px;cursor:pointer;">Decline</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  function setHiddenConsent(val){ var el = document.getElementById('cookie_consent_input'); if(el) el.value = val; }
+  var consent = localStorage.getItem('cookie_consent') || (document.cookie.match(/(^|; )cookie_consent=([^;]+)/)? RegExp.$2 : null);
+  if(consent === 'accepted'){ document.cookie = 'cookie_consent=accepted; path=/'; setHiddenConsent('accepted'); var b=document.getElementById('cookieBanner'); if(b) b.remove(); }
+  else if(consent === 'declined'){ setHiddenConsent('declined'); var b=document.getElementById('cookieBanner'); if(b) b.remove(); }
+  else {
+    var b=document.getElementById('cookieBanner'); if(b) b.style.display = 'flex';
+  }
+  document.getElementById('cookieAcceptBtn').addEventListener('click', function(){ localStorage.setItem('cookie_consent','accepted'); document.cookie='cookie_consent=accepted; path=/'; setHiddenConsent('accepted'); var b=document.getElementById('cookieBanner'); if(b) b.remove(); });
+  document.getElementById('cookieDeclineBtn').addEventListener('click', function(){ localStorage.setItem('cookie_consent','declined'); setHiddenConsent('declined'); var b=document.getElementById('cookieBanner'); if(b) b.remove(); });
+  var forms = document.querySelectorAll('form');
+  forms.forEach(function(f){ f.addEventListener('submit', function(){ setHiddenConsent(localStorage.getItem('cookie_consent') || 'accepted'); }); });
+})();
+</script>
+
 </body>
 </html>

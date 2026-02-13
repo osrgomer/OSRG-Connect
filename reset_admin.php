@@ -13,8 +13,15 @@ try {
     
     // Reset OSRG password to admin123
     $password = password_hash('admin123', PASSWORD_DEFAULT);
-    $stmt = $pdo->prepare("UPDATE users SET password = ? WHERE username = 'OSRG'");
-    $result = $stmt->execute([$password]);
+    // Prefer the password_hash column; fallback created if missing
+    try {
+        $stmt = $pdo->prepare("UPDATE users SET password_hash = ? WHERE username = 'OSRG'");
+        $result = $stmt->execute([$password]);
+    } catch (Exception $e) {
+        // If password_hash column doesn't exist, try legacy column
+        $stmt = $pdo->prepare("UPDATE users SET password = ? WHERE username = 'OSRG'");
+        $result = $stmt->execute([$password]);
+    }
     
     if ($result) {
         echo "OSRG password reset to: admin123";
