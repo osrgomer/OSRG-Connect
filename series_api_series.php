@@ -9,9 +9,23 @@ if (!((isset($_SESSION['user_logged_in']) && $_SESSION['user_logged_in'] === tru
 
 require_once 'series_db.php';
 
+// Backwards compatibility: resolve user_id from email if session lacks it
+if (empty($_SESSION['user_id']) && !empty($_SESSION['user_email'])) {
+    $possibleUser = getUserByEmail($_SESSION['user_email']);
+    if ($possibleUser && isset($possibleUser['id'])) {
+        $_SESSION['user_id'] = $possibleUser['id'];
+    }
+}
+
+// Ensure media_type column exists
+try {
+    $db_m = getDB();
+    $db_m->exec("ALTER TABLE series ADD COLUMN media_type VARCHAR(20) DEFAULT 'series'");
+} catch (Exception $e) {}
+
 $action = $_GET['action'] ?? '';
 $method = $_SERVER['REQUEST_METHOD'];
-$userId = $_SESSION['user_id'];
+$userId = $_SESSION['user_id'] ?? null;
 
 switch ($action) {
     case 'get_all':
@@ -39,7 +53,7 @@ switch ($action) {
             // Update existing
             $stmt = $db->prepare("
                 UPDATE series 
-                SET title = ?, poster = ?, rating = ?, status = ?, notes = ?, tmdb_id = ?, progress = ?, total = ?
+                SET title = ?, poster = ?, rating = ?, status = ?, notes = ?, tmdb_id = ?, progress = ?, total = ?, media_type = ?
                 WHERE id = ? AND user_id = ?
             ");
             $result = $stmt->execute([
@@ -51,6 +65,7 @@ switch ($action) {
                 $data['tmdb_id'] ?? null,
                 $data['progress'] ?? 0,
                 $data['total'] ?? 0,
+                $data['media_type'] ?? 'series',
                 $data['id'],
                 $userId
             ]);
@@ -59,8 +74,8 @@ switch ($action) {
         } else {
             // Insert new
             $stmt = $db->prepare("
-                INSERT INTO series (user_id, title, poster, rating, status, notes, tmdb_id, progress, total)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO series (user_id, title, poster, rating, status, notes, tmdb_id, progress, total, media_type)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ");
             $result = $stmt->execute([
                 $userId,
@@ -71,7 +86,8 @@ switch ($action) {
                 $data['notes'] ?? null,
                 $data['tmdb_id'] ?? null,
                 $data['progress'] ?? 0,
-                $data['total'] ?? 0
+                $data['total'] ?? 0,
+                $data['media_type'] ?? 'series'
             ]);
             
             echo json_encode(['success' => $result, 'id' => $db->lastInsertId()]);
@@ -115,8 +131,8 @@ switch ($action) {
         
         foreach ($series as $show) {
             $stmt = $db->prepare("
-                INSERT INTO series (user_id, title, poster, rating, status, notes, tmdb_id)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO series (user_id, title, poster, rating, status, notes, tmdb_id, media_type)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             ");
             $result = $stmt->execute([
                 $userId,
@@ -125,7 +141,8 @@ switch ($action) {
                 $show['rating'] ?? null,
                 $show['status'] ?? 'watching',
                 $show['notes'] ?? null,
-                $show['id'] ?? null // tmdb_id
+                $show['id'] ?? null, // tmdb_id
+                $show['media_type'] ?? 'series'
             ]);
             if ($result) $imported++;
         }

@@ -188,7 +188,7 @@ require_once 'header.php';
         <span class="game-icon">🎮</span>
         <h3 class="game-title">Valley Game</h3>
         <p class="game-description">External fan-made game hosted on osrg.lol.</p>
-        <a href="https://osrg.lol/osrg/valley_game/" class="play-button" target="_blank" rel="noopener noreferrer">Open Valley Game</a>
+        <a href="sp_games/valley_game/" class="play-button">Open Valley Game</a>
     </div>
     </div>
 </div>

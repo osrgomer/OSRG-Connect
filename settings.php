@@ -177,6 +177,7 @@ if ($_POST['activate_coupon'] ?? false) {
                 INDEX(code)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
         } catch (Exception $e) {}
+        try { $pdo->exec("ALTER TABLE coupons ADD COLUMN expires_at DATETIME DEFAULT NULL"); } catch (Exception $e) {}
 
         try {
             $stmt = $pdo->prepare('SELECT id, assigned_to, used_by, expires_at, created_at FROM coupons WHERE code = ? LIMIT 1');
@@ -195,7 +196,7 @@ if ($_POST['activate_coupon'] ?? false) {
                 if (!empty($coupon['expires_at'])) {
                     try { $expires = new DateTime($coupon['expires_at']); if ($expires < $now) $expired = true; } catch (Exception $e) { }
                 } elseif (!empty($coupon['created_at'])) {
-                    try { $created = new DateTime($coupon['created_at']); $created->add(new DateInterval('PT5H')); if ($created < $now) $expired = true; } catch (Exception $e) { }
+                    try { $created = new DateTime($coupon['created_at']); $created->add(new DateInterval('PT12H')); if ($created < $now) $expired = true; } catch (Exception $e) { }
                 }
 
                 if ($expired) {

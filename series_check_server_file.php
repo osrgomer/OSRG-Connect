@@ -1,6 +1,6 @@
 <?php
-// Show what version of series_friends.php is on the server
-$file = 'series_friends.php';
+// Show what version of friends.php is on the server
+$file = 'friends.php';
 $contents = file_get_contents($file);
 
 // Check for the disabled activity code

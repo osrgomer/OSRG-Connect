@@ -32,7 +32,7 @@ echo "\$isOnline should be: " . (getUserStatus($userId) === 'online' ? 'TRUE' : 
 echo "Checkbox should be: " . (getUserStatus($userId) === 'online' ? 'CHECKED' : 'UNCHECKED') . "\n";
 echo "</pre>";
 
-echo "<h2>Go to series_friends.php and inspect the checkbox:</h2>";
+echo "<h2>Go to friends.php and inspect the checkbox:</h2>";
 echo "<p>Right-click the toggle area, click Inspect, and look for:</p>";
 echo "<pre>&lt;input type=\"checkbox\" id=\"statusToggle\" ... &gt;</pre>";
 echo "<p>Does it have the word <strong>checked</strong> in it?</p>";

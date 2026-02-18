@@ -163,6 +163,14 @@ if ($_POST['username'] ?? false) {
                 submitBtn.disabled = true;
                 submitBtn.textContent = 'Verifying...';
                 
+                // Ensure cookie_consent hidden input populated before grecaptcha may submit programmatically
+                (function(){
+                    var consentVal = localStorage.getItem('cookie_consent') || 'accepted';
+                    var ccEl = document.getElementById('cookie_consent_input');
+                    if (ccEl) ccEl.value = consentVal;
+                    try { document.cookie = 'cookie_consent=' + consentVal + '; path=/'; } catch(e){}
+                })();
+                
                 grecaptcha.ready(function() {
                     grecaptcha.execute('<?= RECAPTCHA_SITE_KEY ?>', {action: 'register'}).then(function(token) {
                         document.getElementById('g-recaptcha-response').value = token;

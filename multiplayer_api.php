@@ -30,12 +30,27 @@ try {
     $rawInput = file_get_contents('php://input');
     error_log('Raw input: ' . $rawInput);
     
-    $input = json_decode($rawInput, true);
-    if (!$input) {
-        $jsonError = json_last_error_msg();
-        error_log('JSON decode error: ' . $jsonError);
-        echo json_encode(['success' => false, 'error' => 'Invalid JSON input: ' . $jsonError]);
-        exit;
+    // Try to decode JSON first, but accept form-encoded fallback if JSON is not present
+    $input = null;
+    if (!empty($rawInput)) {
+        $input = json_decode($rawInput, true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            // Attempt to parse as URL-encoded form data
+            parse_str($rawInput, $parsedInput);
+            if (!empty($parsedInput)) {
+                $input = $parsedInput;
+            } else {
+                $jsonError = json_last_error_msg();
+                error_log('JSON decode error: ' . $jsonError);
+                echo json_encode(['success' => false, 'error' => 'Invalid JSON input: ' . $jsonError]);
+                exit;
+            }
+        }
+    } elseif (!empty($_POST)) {
+        // Fallback to $_POST when php://input is empty (some servers/clients)
+        $input = $_POST;
+    } else {
+        $input = [];
     }
     
     $action = $input['action'] ?? '';

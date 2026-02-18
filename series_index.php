@@ -53,7 +53,6 @@ $extra_head = '
     </style>
 ';
 $extra_buttons = '
-    <a href="index.php" class="text-indigo-600 hover:underline inline-block mr-4" aria-label="Back to Main Page">← Back to Main Page</a>
     <button id="settingsBtn" class="p-2 text-slate-400 dark:text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700" aria-label="Settings">
         <i class="fas fa-cog"></i>
     </button>
@@ -119,7 +118,13 @@ include 'series_header.php';
                     </button>
                 </div>
                 <div class="space-y-3">
-                    <input type="text" id="formTitle" required placeholder="Series Title" class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 text-sm" aria-label="Series title">
+                    <input type="text" id="formTitle" required placeholder="Title" class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 text-sm" aria-label="Title">
+                    <div>
+                        <select id="formMediaType" class="w-full px-4 py-3 border rounded-lg bg-white dark:bg-slate-700 dark:text-slate-100 border-slate-200 dark:border-slate-600 focus:ring-2 focus:ring-indigo-500 outline-none text-sm" aria-label="Type">
+                            <option value="series" selected>Series</option>
+                            <option value="movie">Movie</option>
+                        </select>
+                    </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <select id="formStatus" class="px-4 py-3 border rounded-lg bg-white dark:bg-slate-700 dark:text-slate-100 border-slate-200 dark:border-slate-600 focus:ring-2 focus:ring-indigo-500 outline-none text-sm" aria-label="Status">
                             <option>Watching</option>
@@ -506,6 +511,7 @@ include 'series_header.php';
 
             const data = {
                 title: document.getElementById('formTitle').value,
+                media_type: (document.getElementById('formMediaType') ? document.getElementById('formMediaType').value : 'series'),
                 status: status,
                 rating: Number(document.getElementById('formRating').value) || 0,
                 progress: progress,
@@ -663,5 +669,59 @@ include 'series_header.php';
 
         init();
     </script>
+<script>
+// Fallback: ensure add form still works even if module imports fail
+document.addEventListener('DOMContentLoaded', function() {
+    const seriesForm = document.getElementById('seriesForm');
+    if (!seriesForm) return;
+    // If module already bound onsubmit, don't override
+    if (typeof seriesForm.onsubmit === 'function') return;
+
+    seriesForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const total = Number(document.getElementById('formTotal').value) || 0;
+        const progress = Number(document.getElementById('formProgress').value) || 0;
+        let status = document.getElementById('formStatus').value || 'Watching';
+        if (total > 0 && progress >= total) status = 'Completed';
+
+        const data = {
+            title: document.getElementById('formTitle').value || '',
+            media_type: (document.getElementById('formMediaType') ? document.getElementById('formMediaType').value : 'series'),
+            status: status,
+            rating: Number(document.getElementById('formRating').value) || 0,
+            progress: progress,
+            total: total,
+            updatedAt: Date.now()
+        };
+
+        try {
+            const res = await fetch('series_api_series.php?action=save', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const json = await res.json();
+            if (json.success) {
+                const addModal = document.getElementById('addModal');
+                if (addModal) addModal.classList.add('hidden');
+                seriesForm.reset();
+                // Reload list
+                const r = await fetch('series_api_series.php?action=get_all');
+                const d = await r.json();
+                if (d.success && typeof renderList === 'function') {
+                    renderList(d.series);
+                } else if (d.success) {
+                    document.getElementById('statCount').textContent = d.series.length;
+                }
+            } else {
+                alert('Failed to save: ' + (json.error || json.message || 'Unknown error'));
+            }
+        } catch (err) {
+            console.error('Fallback save error:', err);
+            alert('Error saving entry: ' + (err.message || err));
+        }
+    });
+});
+</script>
 </body>
 </html>

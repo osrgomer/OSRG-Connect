@@ -28,13 +28,14 @@ if (!isset($_SESSION['user_id'])) {
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: Arial, sans-serif; background: #f5f5f5; }
-        .nav { background: white; padding: 10px; margin-bottom: 20px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
-        .nav-links { display: flex; align-items: center; }
-        .nav-links a { color: #1877f2; text-decoration: none; margin-right: 15px; }
-        .user-avatar { width: 40px !important; height: 40px !important; border-radius: 50% !important; cursor: pointer !important; transition: transform 0.2s !important; display: block !important; }
-        .user-avatar:hover { transform: scale(1.1) !important; }
-        .nav > div:last-child { display: flex !important; align-items: center !important; z-index: 999 !important; }
-        .avatar-container { display: flex !important; align-items: center !important; }
+        .nav { background: white; padding: 10px; margin-bottom: 20px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+        .nav-links { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .nav-links a { color: #1877f2; text-decoration: none; margin-right: 0; padding: 6px 8px; border-radius: 6px; }
+        .nav-links a:hover { background: #f0f4ff; }
+        .user-avatar { width: 40px; height: 40px; border-radius: 50%; cursor: pointer; transition: transform 0.15s; display: block; object-fit: cover; }
+        .user-avatar:hover { transform: scale(1.05); }
+        .nav > div:last-child { display: flex; align-items: center; z-index: 999; }
+        .avatar-container { display: flex; align-items: center; gap: 10px; }
         .hamburger { display: none; flex-direction: column; cursor: pointer; }
         .hamburger span { width: 25px; height: 3px; background: #1877f2; margin: 3px 0; transition: 0.3s; }
         
@@ -91,9 +92,9 @@ if (!isset($_SESSION['user_id'])) {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         /* Notification Styles */
-        #notifBtn { background: none; border: none; cursor: pointer; position: relative; padding: 8px; margin-right: 15px; font-size: 1.2rem; color: #555; }
+        #notifBtn { background: none; border: none; cursor: pointer; position: relative; padding: 8px; margin-right: 8px; font-size: 1.2rem; color: #555; }
         #notifBtn:hover { color: #1877f2; background-color: #f0f2f5; border-radius: 50%; }
-        #notifBadge { position: absolute; top: -2px; right: -2px; background: #e41e3f; color: white; font-size: 0.7rem; font-weight: bold; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid white; }
+        #notifBadge { position: absolute; top: -6px; right: -6px; background: #e41e3f; color: white; font-size: 0.7rem; font-weight: bold; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid white; }
         #notifDropdown { display: none; position: absolute; top: 60px; right: 20px; width: 320px; background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 10000; overflow: hidden; border: 1px solid #ddd; }
         #notifDropdown.show { display: block; }
         .notif-header { padding: 12px 16px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; background: #f9fafb; }
@@ -107,6 +108,15 @@ if (!isset($_SESSION['user_id'])) {
         .notif-content { flex: 1; font-size: 0.9rem; }
         .notif-time { display: block; font-size: 0.75rem; color: #65676b; margin-top: 4px; }
         .empty-notif { padding: 40px 20px; text-align: center; color: #65676b; }
+        /* Compact live network status */
+        .live-status { display: inline-flex; gap: 8px; align-items: center; margin-right: 12px; }
+        .live-status .dot { width:10px; height:10px; border-radius:50%; background:#22c55e; display:inline-block; }
+        .live-status .count { font-size:0.85rem; color:#374151; }
+        .live-dropdown { position: absolute; top: 48px; right: 60px; background: white; border: 1px solid #ddd; border-radius: 8px; padding: 8px; box-shadow: 0 6px 16px rgba(0,0,0,0.12); display:none; z-index:10001; max-width:260px; }
+        .live-dropdown.show { display:block; }
+        .live-item { padding:6px 8px; font-size:0.9rem; color:#374151; border-bottom:1px solid #f3f4f6; }
+        .live-item:last-child{ border-bottom:none; }
+        @media (max-width:768px){ .live-dropdown{ right:20px; left:20px; } }
     </style>
     <script>
         // Notification Logic

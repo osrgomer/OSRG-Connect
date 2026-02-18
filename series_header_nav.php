@@ -134,7 +134,7 @@
                         return `
                             <div class="px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700 border-b border-slate-100 dark:border-slate-700 last:border-b-0 ${isNew ? 'bg-indigo-50 dark:bg-indigo-900/20' : ''}">
                                 <div class="flex items-start gap-3">
-                                    <img src="${activity.user.avatar}" class="w-8 h-8 rounded-full flex-shrink-0">
+                                    <img src="${ (activity.user && activity.user.avatar && (activity.user.avatar.startsWith('http') || activity.user.avatar.includes('serve_asset.php') || activity.user.avatar.startsWith('/'))) ? activity.user.avatar : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(activity.user.username || 'User') }" class="w-8 h-8 rounded-full flex-shrink-0" onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name='+encodeURIComponent('${activity.user.username || 'User'}')">
                                     <div class="flex-1 min-w-0">
                                         <p class="text-sm text-slate-800 dark:text-slate-100">
                                             <span class="font-semibold">${activity.user.username}</span>

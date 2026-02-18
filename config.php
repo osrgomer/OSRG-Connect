@@ -55,6 +55,23 @@ function init_db() {
     $pdo = get_db();
     if (!$pdo) return null;
     
+    // Ensure users table exists (create before attempting ALTERs)
+    try {
+        $pdo->exec("CREATE TABLE IF NOT EXISTS users (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            username VARCHAR(255) UNIQUE,
+            email VARCHAR(255) UNIQUE,
+            password_hash VARCHAR(255),
+            password VARCHAR(255),
+            approved TINYINT DEFAULT 1,
+            timezone VARCHAR(100) DEFAULT 'Europe/London',
+            email_notifications TINYINT DEFAULT 0,
+            manual_status VARCHAR(50) DEFAULT 'auto',
+            last_active TIMESTAMP NULL DEFAULT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+    } catch (Exception $e) {}
+
     // 1. Update users table (SeriesList already has some of these)
     try {
         $pdo->exec("ALTER TABLE users ADD COLUMN password_hash VARCHAR(255)");
@@ -170,6 +187,19 @@ function init_db() {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+    // Ensure at least one user exists; create default admin if none
+    try {
+        $row = $pdo->query("SELECT COUNT(*) AS c FROM users")->fetch(PDO::FETCH_ASSOC);
+        $count = $row['c'] ?? $pdo->query("SELECT COUNT(*) FROM users")->fetchColumn();
+        if (!$count || intval($count) === 0) {
+            $pw = bin2hex(random_bytes(4)); // 8-char random password
+            $hash = password_hash($pw, PASSWORD_DEFAULT);
+            $stmt = $pdo->prepare("INSERT INTO users (username, email, password_hash, approved, timezone, email_notifications, created_at) VALUES (?, ?, ?, 1, 'Europe/London', 0, NOW())");
+            $stmt->execute(['admin', 'admin@connect.osrg.lol', $hash]);
+            @file_put_contents(__DIR__ . '/login_debug.log', "[" . date('c') . "] Created default admin (admin@connect.osrg.lol) with password: {$pw}\n", FILE_APPEND);
+        }
+    } catch (Exception $e) {}
 
     return $pdo;
 }
