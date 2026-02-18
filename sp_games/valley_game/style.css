@@ -1,0 +1,520 @@
+/* --- General Styles --- */
+body {
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: #0a0a0f;
+    background-image:
+        radial-gradient(at 0% 0%, rgba(0, 255, 255, 0.03) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.03) 0px, transparent 50%);
+    font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    overflow: hidden;
+}
+
+/* Home Link */
+#home-link {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    font-size: 24px;
+    text-decoration: none;
+    z-index: 300;
+    opacity: 0.8;
+    transition: opacity 0.2s ease;
+}
+#home-link:hover {
+    opacity: 1;
+}
+
+#game-container {
+    position: relative;
+    width: 320px;
+    height: 480px;
+    /* Default CSS Variables - will be overridden by JS */
+    --bg-color: #6a8d5f;
+    --road-color: #555;
+    --tree-trunk-color: #8b4513;
+    --tree-foliage-color: #2e8b57;
+    --hole-border-color: #333;
+    --hole-fill-color: #111;
+    --hole-water-fill-color: #00008B;
+    --hole-water-border-color: #000000;
+    --ui-text-color: #fff;
+    --ui-shadow-color: #000;
+    --roof-color: #dcd6c8; /* Default roof color */
+
+
+    background-color: var(--bg-color);
+    overflow: hidden;
+    transition: background-color 1s ease-in-out;
+}
+
+/* --- UI Elements --- */
+.ui-text {
+    position: absolute;
+    color: var(--ui-text-color);
+    z-index: 100;
+    text-shadow: 1px 1px 2px var(--ui-shadow-color);
+}
+/* Arcade Font for Score and Level */
+#level-display {
+    display: none;
+    font-family: 'Press Start 2P', 'Courier New', monospace;
+    font-size: 12px; /* Adjust size for blocky font */
+    text-transform: uppercase;
+}
+/* --- UI Positioning --- */
+#level-display { /* Line 1 Left */
+    top: 46px;
+    width: 100%;
+    text-align: center;
+}
+#score-container { /* Line 2 Right - Score Box */
+    position: absolute;
+    top: 5px; /* Align with hearts */
+    left: 10px; /* Position next to hearts (adjust as needed) */
+    background-color: #1a1a1a;
+    border: 2px solid #444;
+    border-radius: 4px;
+    padding: 2px 6px;
+    box-shadow: inset 1px 1px 3px rgba(0,0,0,0.7);
+    z-index: 100;
+}
+#score-display { /* Score Number inside box */
+    position: static; /* Reset position */
+    font-family: 'Press Start 2P', 'Courier New', monospace;
+    font-size: 14px;
+    color: #ff8c00; /* Match speedometer color */
+    text-shadow: 0 0 2px #ff8c00;
+    display: inline-block; /* Allow padding */
+    margin-top: 5px;
+    margin-left: 3px;
+}
+/* Mute Button Positioning */
+#mute-btn {
+    position: absolute;
+    top: 70px; /* Below lives/score */
+    right: 10px;
+    z-index: 100;
+}
+#speed-display-container { /* Line 2 Left */
+    position: absolute;
+    top: 5px;
+    right: 10px;
+    background-color: #1a1a1a;
+    border: 2px solid #444;
+    border-radius: 4px;
+    padding: 3px 8px;
+    box-shadow: inset 1px 1px 3px rgba(0,0,0,0.7);
+    z-index: 100;
+}
+#lives-display { /* Line 2 Left */
+    display: block !important;
+    background-color: rgba(26, 26, 26, 0.9);
+    border: 2px solid #666;
+    border-radius: 4px;
+    padding: 6px 10px;
+    position: absolute;
+    top: 35px; /* Below Level/Score */
+    left: 10px;
+    font-size: 20px;
+    z-index: 150;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    white-space: nowrap;
+    color: #fff;
+    text-shadow: 1px 1px 2px #000;
+}
+/* --- End UI Positioning --- */
+
+#speed-value {
+    font-family: 'Orbitron', 'Courier New', monospace;
+    font-size: 18px;
+    color: #ff8c00;
+    text-shadow: 0 0 3px #ff8c00;
+    letter-spacing: 1px;
+}
+.speed-unit {
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    color: #aaa;
+    margin-left: 5px;
+}
+
+#level-title-display { /* Fading Text Title */
+    position: absolute;
+    top: 55%; /* Moved slightly lower */
+    left: 50%;
+    transform: translateX(-50%);
+    color: var(--ui-text-color);
+    font-size: 24px;
+    font-weight: bold;
+    text-shadow: 2px 2px 4px var(--ui-shadow-color);
+    z-index: 150; /* Below popup */
+    opacity: 0;
+    transition: opacity 1s ease-in-out;
+    text-align: center;
+    pointer-events: none;
+    width: 80%;
+}
+
+/* Level Popup Style */
+#level-popup { /* Icon Popup */
+    position: absolute;
+    top: 40%; /* Moved slightly higher */
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100px;
+    height: 100px;
+    background-color: rgba(255, 255, 255, 0.85);
+    border: 3px solid #555;
+    border-radius: 15px;
+    display: none; /* Hidden by default */
+    justify-content: center;
+    align-items: center;
+    z-index: 170; /* Above fading title */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    font-size: 60px;
+    text-align: center;
+}
+#level-popup img { /* Style if using images */
+    max-width: 80%;
+    max-height: 80%;
+}
+/* End Level Popup Style */
+
+
+#start-screen {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background-color: rgba(0,0,0,0.7); z-index: 200; display: flex;
+    flex-direction: column; justify-content: center; align-items: center;
+}
+#title {
+    width: 100%; text-align: center; color: #ffa500; font-size: 28px;
+    font-weight: bold; text-shadow: 2px 2px 4px #000; margin-bottom: 40px;
+}
+#start-btn {
+    padding: 10px 20px; background-color: #ff0000; color: white; border: none;
+    cursor: pointer; font-family: 'Courier New', monospace; font-weight: bold;
+}
+
+#game-over {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background-color: rgba(0,0,0,0.8); color: #ff0000; display: none; /* Starts hidden */
+    flex-direction: column; justify-content: center; align-items: center;
+    z-index: 200; text-align: center;
+}
+#restart-btn {
+    margin-top: 20px; padding: 10px 20px; background-color: #ff0000; color: white;
+    border: none; cursor: pointer; font-family: 'Courier New', monospace; font-weight: bold;
+}
+
+/* --- Controls Styling --- */
+#controls {
+    position: absolute;
+    bottom: 10px;
+    width: 100%;
+    display: flex;
+    justify-content: space-around; /* Distribute space around items */
+    align-items: center; /* Align items vertically */
+    z-index: 100;
+    padding: 0 10px;
+    box-sizing: border-box;
+}
+.control-btn {
+    width: 70px; /* Slightly larger */
+    height: 50px;
+    background: linear-gradient(to bottom, #666, #444); /* Gradient background */
+    color: white;
+    border: 2px solid #888;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+    border-radius: 8px; /* More rounded */
+    box-shadow: 0 2px 3px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.2);
+    font-size: 24px; /* Larger arrow */
+    font-weight: bold;
+    transition: background 0.1s ease;
+}
+.control-btn:active {
+    background: linear-gradient(to top, #666, #444); /* Invert gradient on press */
+    box-shadow: 0 1px 1px rgba(0,0,0,0.5), inset 0 1px 3px rgba(0,0,0,0.3);
+}
+/* Icon Button Base Style (Pause/Mute) */
+.icon-btn {
+    background-color: #444; /* Default background */
+    color: white;
+    border: 2px solid #777;
+    border-radius: 50%; /* Circle */
+    width: 45px;
+    height: 45px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+    box-shadow: 0 2px 3px rgba(0,0,0,0.5);
+    font-size: 18px; /* Icon size */
+    transition: background-color 0.1s ease, box-shadow 0.1s ease;
+    padding: 0; /* Remove default padding */
+}
+.icon-btn span {
+    line-height: 1; /* Ensure icon is centered vertically */
+}
+.icon-btn:active {
+    box-shadow: 0 1px 1px rgba(0,0,0,0.5), inset 0 1px 3px rgba(0,0,0,0.3);
+    background-color: #333;
+}
+#pause-btn {
+    background-color: #ffa500; /* Orange */
+    border-color: #ffc966;
+}
+#pause-btn.paused {
+    background-color: #ff4500; /* Reddish-orange when paused */
+    border-color: #ff8c66;
+}
+#pause-btn:active {
+     background-color: #cc8400; /* Darker orange */
+}
+#pause-btn.paused:active {
+     background-color: #cc3700; /* Darker red-orange */
+}
+/* Mute Button Specifics */
+
+#mute-btn.muted {
+    background-color: #c0c0c0; /* Grey out when muted */
+    border-color: #e0e0e0;
+    color: #555;
+}
+#mute-btn:active {
+     background-color: #333;
+}
+#mute-btn.muted:active {
+     background-color: #a0a0a0;
+}
+/* --- End Controls Styling --- */
+
+
+/* --- Game Elements --- */
+#road {
+    position: absolute; width: 100%; height: 100%;
+    background-color: var(--road-color); z-index: 1;
+    transition: background-color 1s ease-in-out;
+    overflow: hidden; /* Hide cracks spawning just above */
+}
+.crack {
+    position: absolute;
+    /* Color slightly lighter/darker than road, using color-mix */
+    background-color: color-mix(in srgb, var(--road-color) 80%, #ccc 20%);
+    width: 3px; /* Crack width */
+    height: 15px; /* Crack segment length */
+    z-index: 2; /* Above road, below holes/car */
+    border-radius: 1px;
+    box-shadow: 1px 1px 1px rgba(0,0,0,0.2); /* Subtle shadow */
+}
+/* End Crack Style */
+#car {
+    position: absolute; width: 55px; height: 90px; bottom: 76px; z-index: 10;
+    background-color: #e6e1d2; border-radius: 10px; border: 1px solid #999;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.4);
+    transition: transform 0.1s ease-out, background 0.3s ease; display: block;
+    --roof-color: #ffda84; /* Default roof color variable */
+}
+/* Roof and Surfboard */
+#car::before {
+    content: '';
+    position: absolute;
+    /* Roof */
+    right: 4px;
+    height: 58px; /* Slightly longer roof */
+    background-color: var(--roof-color); /* Use CSS variable for roof color */
+    border: 2px solid black;
+    border-radius: 3px;
+    z-index: 1;
+    transition: background-color 0.5s ease; /* Smooth roof color change */
+
+    /* Surfboard (drawn on top of roof using border trick) */
+    border-top: 60px solid #ffebcd; /* Longer surfboard */
+    border-left: 9px solid transparent; /* Taper */
+    border-right: 9px solid transparent; /* Taper */
+    border-bottom: none;
+    width: 0;
+    height: 0;
+    top: 10px; /* Position vertically centered on roof */
+    left: 50%;
+    transform: translateX(-50%);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    border-radius: 10px / 30px; /* Adjust rounding for longer board */
+    background-color: transparent;
+}
+/* Windshield and Lights */
+#car::after {
+    content: '';
+    position: absolute;
+    /* Windshield */
+    top: 5px;
+    left: 5px;
+    right: 5px;
+    height: 20px;
+    background-color: #aaccdd;
+    border-radius: 5px 5px 0 0;
+    border: 1px solid #779;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.2);
+
+    /* Headlights (using border trick) */
+    border-top: 5px solid #ffffaa;
+    border-bottom: none;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    top: -2px; /* Position headlights at the very top */
+    width: 35px; /* Width covering the front */
+    height: 0;
+    background-color: transparent;
+    border-radius: 5px 5px 0 0;
+    box-shadow: 0 -1px 3px #ff0; /* Glow */
+}
+/* Wheels - NEW */
+#car > span::before,
+#car > span::after {
+    content: '';
+    position: absolute;
+    background-color: #222; /* Dark wheel color */
+    width: 6px; /* Wheel width */
+    height: 20px; /* Wheel height/length */
+    border-radius: 3px;
+    border: 1px solid #111;
+    bottom: -5px; /* Position slightly protruding from bottom */
+    z-index: -1; /* Behind the car body */
+    transition: opacity 0.3s ease; /* Add transition for hiding */
+}
+/* Left Wheels */
+#car > span::before {
+    left: -8px; /* Position outside the left edge */
+}
+/* Right Wheels */
+#car > span::after {
+    right: -8px; /* Position outside the right edge */
+}
+/* Front Wheels (using the first span) */
+#car > span:first-of-type::before,
+#car > span:first-of-type::after {
+    top: 10px; /* Position near the front */
+    bottom: auto; /* Override bottom positioning */
+}
+/* Rear Wheels (using the second span) */
+#car > span:last-of-type::before,
+#car > span:last-of-type::after {
+    bottom: 10px; /* Position near the back */
+}
+/* End Wheels */
+/* --- Wheel Hiding Classes --- */
+#car.hide-fl #front-wheels::before { opacity: 0; } /* Hide Front-Left */
+#car.hide-fr #front-wheels::after  { opacity: 0; } /* Hide Front-Right */
+#car.hide-rl #rear-wheels::before  { opacity: 0; } /* Hide Rear-Left */
+#car.hide-rr #rear-wheels::after   { opacity: 0; } /* Hide Rear-Right */
+/* --- End Wheel Hiding --- */
+
+
+.borehole {
+    position: absolute; background-color: var(--hole-fill-color);
+    border: 5px solid var(--hole-border-color); border-radius: 50%; z-index: 5;
+    box-sizing: border-box; transition: background-color 1s ease-in-out, border-color 1s ease-in-out, box-shadow 0.5s ease; /* Added box-shadow transition */
+    /* Default shadow - will be overridden by JS */
+    box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.4);
+}
+.borehole.small {
+     /* Small holes are now elliptical via JS width/height */
+     background-color: color-mix(in srgb, var(--hole-fill-color) 60%, white 40%);
+     border-color: color-mix(in srgb, var(--hole-border-color) 60%, white 40%);
+     border-radius: 50%; /* Keep this for elliptical effect */
+}
+.borehole.water {
+    /* Transparent background */
+    background-color: transparent;
+    /* Slightly different border maybe? */
+    border-color: var(--hole-water-border-color); /* Black border */
+    /* Water effect using a subtle gradient and maybe pseudo-element */
+    background-image: linear-gradient(
+        to bottom right,
+        rgba(180, 210, 240, 0.2), /* Light blueish tint */
+        rgba(100, 130, 180, 0.3),
+        rgba(180, 210, 240, 0.2)
+    );
+    overflow: hidden; /* Needed for pseudo-element */
+}
+/* Optional: Add a ripple/reflection effect */
+.borehole.water::after {
+    content: '';
+    position: absolute;
+    top: 15%;
+    left: 10%;
+    right: 40%;
+    bottom: 55%;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 40% 60% 45% 55% / 60% 50% 55% 40%;
+    transform: rotate(-15deg);
+    opacity: 0.7;
+}
+
+.borehole.water.small {
+     /* Keep transparent background */
+     background-color: transparent;
+     border-color: color-mix(in srgb, var(--hole-water-border-color) 80%, #555 20%);
+     border-radius: 50%;
+     background-image: linear-gradient(
+        to bottom right,
+        rgba(200, 220, 250, 0.15), /* Lighter tint for small */
+        rgba(120, 150, 200, 0.25),
+        rgba(200, 220, 250, 0.15)
+    );
+}
+.borehole.water.small::after {
+    /* Adjust reflection for smaller size */
+    top: 20%;
+    left: 15%;
+    right: 45%;
+    bottom: 60%;
+    opacity: 0.6;
+}
+
+/* --- Scenery --- */
+#scenery-left, #scenery-right {
+    position: absolute; top: 0; height: 100%; width: 60px; z-index: 2; overflow: hidden;
+}
+#scenery-left { left: 0; } #scenery-right { right: 0; }
+
+.tree { position: absolute; width: 30px; height: 50px; }
+.tree::before { /* Trunk */
+    content: ""; position: absolute; bottom: 0; left: 10px; width: 10px; height: 15px;
+    background-color: var(--tree-trunk-color); border-radius: 2px 2px 0 0;
+    transition: background-color 1s ease-in-out;
+}
+.tree::after { /* Foliage */
+    content: ""; position: absolute; bottom: 15px; left: 0; width: 30px; height: 35px;
+    background-color: var(--tree-foliage-color);
+    border-radius: 50% 50% 40% 40% / 60% 60% 40% 40%;
+    transition: background-color 1s ease-in-out;
+}
+.tree.type2::before { height: 12px; width: 12px; left: 9px; background-color: color-mix(in srgb, var(--tree-trunk-color) 80%, #555 20%); }
+.tree.type2::after { background-color: color-mix(in srgb, var(--tree-foliage-color) 80%, #ffc107 20%); border-radius: 45% 55% 40% 60% / 60% 50% 50% 40%; }
+.tree.type3::before { height: 18px; width: 8px; left: 11px; background-color: color-mix(in srgb, var(--tree-trunk-color) 90%, #fff 10%); }
+.tree.type3::after { background-color: color-mix(in srgb, var(--tree-foliage-color) 70%, #f44336 30%); border-radius: 50%; height: 30px; bottom: 18px; }
+
+.flower { position: absolute; width: 15px; height: 15px; z-index: 3; }
+.flower::before { /* Stem */
+    content: ""; position: absolute; bottom: 0; left: 7px; width: 2px; height: 8px;
+    background-color: #3cb371;
+}
+.flower::after { /* Petals */
+    content: ""; position: absolute; bottom: 8px; left: 0; width: 15px; height: 7px;
+    background-color: #ff69b4; border-radius: 50%;
+}
+.flower.yellow::after { background-color: #ffd700; }
+.flower.white::after { background-color: #ffffff; }
+.flower.blue::after { background-color: #6495ed; }
+.flower.red::after { background-color: #dc143c; }
+.flower.purple::after { background-color: #9370db; }
+.flower.orange::after { background-color: #ffa500; }

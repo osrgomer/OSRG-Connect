@@ -1,6 +1,7 @@
 <?php
 require_once 'config.php';
 require_once 'series_db.php';
+if (session_status() === PHP_SESSION_NONE) session_start();
 
 // Unified Admin Authentication
 $isAdmin = false;
@@ -32,18 +33,41 @@ $message = '';
 
 // --- SOCIAL PLATFORM ACTIONS (SQLite) ---
 
-// Handle user deletion
+// Handle user deletion (safer: validate, transaction, and catch exceptions)
 if ($_GET['delete_social'] ?? false) {
-    $delete_id = $_GET['delete_social'];
-    $stmt_check = $pdo_social->prepare("SELECT username FROM users WHERE id = ?");
-    $stmt_check->execute([$delete_id]);
-    $user_to_delete = $stmt_check->fetch();
-    if ($delete_id != $_SESSION['user_id'] && $user_to_delete && !($user_to_delete['username'] === 'OSRG' || $user_to_delete['username'] === 'backup')) {
-        $pdo_social->prepare("DELETE FROM users WHERE id = ?")->execute([$delete_id]);
-        $pdo_social->prepare("DELETE FROM posts WHERE user_id = ?")->execute([$delete_id]);
-        $pdo_social->prepare("DELETE FROM friends WHERE user_id = ? OR friend_id = ?")->execute([$delete_id, $delete_id]);
-        $pdo_social->prepare("DELETE FROM messages WHERE sender_id = ? OR receiver_id = ?")->execute([$delete_id, $delete_id]);
-        $message = 'Social user deleted successfully!';
+    $delete_id = (int)($_GET['delete_social']);
+    try {
+        $stmt_check = $pdo_social->prepare("SELECT username FROM users WHERE id = ?");
+        $stmt_check->execute([$delete_id]);
+        $user_to_delete = $stmt_check->fetch();
+
+        $currentUserId = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : 0;
+        if ($delete_id !== $currentUserId && $user_to_delete && !in_array($user_to_delete['username'], ['OSRG', 'backup'])) {
+            // Attempt transactional delete where supported
+            try { if (method_exists($pdo_social, 'beginTransaction')) $pdo_social->beginTransaction(); } catch (Exception $e) {}
+
+            // Delete dependent records first
+            $pdo_social->prepare("DELETE FROM posts WHERE user_id = ?")->execute([$delete_id]);
+            $pdo_social->prepare("DELETE FROM friends WHERE user_id = ? OR friend_id = ?")->execute([$delete_id, $delete_id]);
+            $pdo_social->prepare("DELETE FROM messages WHERE sender_id = ? OR receiver_id = ?")->execute([$delete_id, $delete_id]);
+
+            // Also remove SeriesList admin uploads that reference this user to avoid FK constraint errors
+            try {
+                $pdo_social->prepare("DELETE FROM admin_uploads WHERE uploaded_by = ?")->execute([$delete_id]);
+            } catch (Exception $e) {
+                // Table may not exist or other issue - log and continue
+                error_log("admin.php: failed to remove admin_uploads for user {$delete_id}: " . $e->getMessage());
+            }
+            $pdo_social->prepare("DELETE FROM users WHERE id = ?")->execute([$delete_id]);
+
+            try { if (method_exists($pdo_social, 'commit')) $pdo_social->commit(); } catch (Exception $e) {}
+
+            $message = 'Social user deleted successfully!';
+        }
+    } catch (Exception $e) {
+        try { if (method_exists($pdo_social, 'rollBack')) $pdo_social->rollBack(); } catch (Exception $e2) {}
+        error_log('admin.php delete_social error: ' . $e->getMessage());
+        $message = 'Failed to delete social user: ' . htmlspecialchars($e->getMessage());
     }
 }
 
@@ -135,12 +159,14 @@ if ($_POST['create_coupon'] ?? false) {
                     used_at TIMESTAMP NULL,
                     INDEX(code)
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+                try { $pdo_social->exec("ALTER TABLE users ADD COLUMN temp_password VARCHAR(255) DEFAULT NULL"); } catch (Exception $e) {}
+                try { $pdo_social->exec("ALTER TABLE coupons ADD COLUMN expires_at DATETIME DEFAULT NULL"); } catch (Exception $e) {}
 
                 if (empty($code)) {
                     try { $code = bin2hex(random_bytes(5)); } catch (Exception $e) { $code = substr(md5(uniqid('', true)), 0, 10); }
                 }
 
-                $expires_at = date('Y-m-d H:i:s', strtotime('+5 hours'));
+                $expires_at = date('Y-m-d H:i:s', strtotime('+12 hours'));
 
                 $stmt_ins = $pdo_social->prepare('INSERT INTO coupons (code, created_by, assigned_to, expires_at) VALUES (?, ?, ?, ?)');
                 $stmt_ins->execute([$code, $_SESSION['user_id'], $rec['id'], $expires_at]);
@@ -233,6 +259,16 @@ $page_title = 'Unified Command Centre';
             50% { transform: scale(1.5); opacity: 0.5; }
             100% { transform: scale(1); opacity: 1; }
         }
+
+        /* LIVE NETWORK STATUS: ensure stage and bubbles render cleanly even if Tailwind utilities are unavailable */
+        #userStage { font-size: 0; position: relative; overflow: visible; }
+        /* direct child bubbles (created by JS) should be absolutely positioned and centered at their coordinates */
+        #userStage > div { position: absolute; width: 64px; height: 64px; display: flex; align-items: center; justify-content: center; transform: translate(-50%, -50%); font-size: 13px; pointer-events: auto; }
+        /* fallback styling for avatar image when utility classes are missing */
+        #userStage img { width: 48px; height: 48px; border-radius: 9999px; object-fit: cover; border: 2px solid rgba(255,255,255,0.06); display:block; }
+        /* slightly larger pulse when shown */
+        #userStage .status-pulse { width: 10px; height: 10px; position: absolute; top: -6px; left: -6px; z-index: 2; opacity: 0.9; }
+
     </style>
 </head>
 <body class="min-h-screen">
@@ -298,12 +334,12 @@ $page_title = 'Unified Command Centre';
                         <h3 class="font-bold flex items-center gap-2 italic"><i class="fas fa-bolt text-yellow-400"></i> LIVE NETWORK STATUS</h3>
                         <span class="text-[10px] bg-white/5 px-2 py-1 rounded">REAL-TIME SYNC</span>
                     </div>
-                    <div class="p-6 h-[400px] relative overflow-hidden bg-slate-950/50" id="userStage">
+                    <div class="p-4 h-[400px] relative overflow-hidden bg-slate-950/50" id="userStage">
                         <!-- Bubble map spawns here -->
                     </div>
                 </div>
                 <div class="glass-card rounded-2xl overflow-hidden">
-                    <div class="p-6 border-b border-white/5">
+                    <div class="p-4 border-b border-white/5">
                         <h3 class="font-bold flex items-center gap-2 italic"><i class="fas fa-terminal text-cyan-400"></i> SYSTEM LOGS</h3>
                     </div>
                     <div class="p-4 space-y-3 h-[400px] overflow-y-auto" id="activityFeed">
@@ -561,12 +597,14 @@ $page_title = 'Unified Command Centre';
             bubbles.forEach((user, idx) => {
                 let b = document.getElementById(`b-${user.id}`);
                 if (!b) {
-                    b = document.createElement('div');
+                        b = document.createElement('div');
                     b.id = `b-${user.id}`;
-                    b.className = 'absolute transition-all duration-700 cursor-pointer group';
+                    b.className = 'transition-all duration-700 cursor-pointer group';
                     const col = idx % 6; const row = Math.floor(idx / 6);
                     b.style.left = `${10 + col * 15}%`;
                     b.style.top = `${15 + row * 25}%`;
+                    // Ensure absolute positioning even if Tailwind utilities are missing
+                    b.style.position = 'absolute';
                     b.onclick = () => { if(confirm(`God Mode into ${user.username}?`)) impersonate(user.id); };
                     stage.appendChild(b);
                 }

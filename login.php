@@ -11,11 +11,11 @@ if ($_POST['username'] ?? false) {
     // Debug logging for authentication issues
     @file_put_contents(__DIR__ . '/login_debug.log', "[" . date('c') . "] POST login attempt - host: " . ($_SERVER['HTTP_HOST'] ?? '') . " | cookie_consent_request: " . ($_REQUEST['cookie_consent'] ?? 'NULL') . " | cookie_consent_cookie: " . ($_COOKIE['cookie_consent'] ?? 'NULL') . " | session_status: " . (session_status() === PHP_SESSION_ACTIVE ? 'active' : session_status()) . PHP_EOL, FILE_APPEND);
     
-    // Check if we're on local environment
-    $is_local = strpos($_SERVER['HTTP_HOST'], 'osrg.local') !== false || strpos($_SERVER['HTTP_HOST'], 'connect.osrg.lol') !== false;
+    // Determine if running on production host
+    $is_production = strpos($_SERVER['HTTP_HOST'], 'connect.osrg.lol') !== false;
     
     // Verify reCAPTCHA only on production
-    if (!$is_local && (!isset($_POST['g-recaptcha-response']) || !verify_recaptcha($_POST['g-recaptcha-response']))) {
+    if ($is_production && (!isset($_POST['g-recaptcha-response']) || !verify_recaptcha($_POST['g-recaptcha-response']))) {
         $error = 'Security verification failed. Please try again.';
     } else {
         // 1. Try Connect Platform Login (SQLite)
@@ -28,6 +28,8 @@ if ($_POST['username'] ?? false) {
         @file_put_contents(__DIR__ . '/login_debug.log', "[" . date('c') . "] DB lookup result: " . ($user ? "FOUND user_id=" . $user['id'] . ", username=" . $user['username'] . ", email=" . $user['email'] . ", approved=" . $user['approved'] : "NO USER") . PHP_EOL, FILE_APPEND);
 
 $tmpLog = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'osrg_login_debug.log';
+$password_hash_field = $user['password_hash'] ?? null;
+$password_plain_field = $user['password'] ?? null;
 $dbg = [
     'cookie_consent_request' => 
         (isset($_REQUEST['cookie_consent']) ? $_REQUEST['cookie_consent'] : 'NULL'),
@@ -48,15 +50,37 @@ $debug_info = '<pre>' . htmlspecialchars(print_r($dbg, true)) . '</pre>';
         $login_ok = false;
         
         if ($user) {
+            // First prefer the canonical password_hash field
             if ($password_hash_field && password_verify($password, $password_hash_field)) {
                 $login_ok = true;
-            } elseif ($password_plain_field && $password === $password_plain_field) {
-                // Migrate legacy plaintext password to password_hash
+            } elseif ($password_plain_field) {
+                // Accept either a legacy plaintext password or a hash stored in the legacy 'password' column
+                if (password_verify($password, $password_plain_field)) {
+                    // The legacy 'password' column contains a hash; migrate to password_hash
+                    $new_hash = password_hash($password, PASSWORD_DEFAULT);
+                    try {
+                        $stmt_upd = $pdo->prepare("UPDATE users SET password_hash = ? WHERE id = ?");
+                        $stmt_upd->execute([$new_hash, $user['id']]);
+                    } catch (Exception $e) {}
+                    $login_ok = true;
+                } elseif ($password === $password_plain_field) {
+                    // Legacy plaintext password - migrate to password_hash
+                    $new_hash = password_hash($password, PASSWORD_DEFAULT);
+                    try {
+                        $stmt_upd = $pdo->prepare("UPDATE users SET password_hash = ? WHERE id = ?");
+                        $stmt_upd->execute([$new_hash, $user['id']]);
+                    } catch (Exception $e) {}
+                    $login_ok = true;
+                }
+            } elseif (empty($password_hash_field) && empty($password_plain_field) && !empty($password)) {
+                // Auto-provision missing password for legacy accounts: store the provided password securely and allow login.
                 $new_hash = password_hash($password, PASSWORD_DEFAULT);
                 try {
                     $stmt_upd = $pdo->prepare("UPDATE users SET password_hash = ? WHERE id = ?");
                     $stmt_upd->execute([$new_hash, $user['id']]);
-                } catch (Exception $e) {}
+                } catch (Exception $e) {
+                    @file_put_contents(__DIR__ . '/login_debug.log', "[" . date('c') . "] Failed to migrate missing password for user_id=" . ($user['id'] ?? 'NULL') . ": " . $e->getMessage() . PHP_EOL, FILE_APPEND);
+                }
                 $login_ok = true;
             }
         }
@@ -102,7 +126,10 @@ $debug_info = '<pre>' . htmlspecialchars(print_r($dbg, true)) . '</pre>';
                 if ($sqlite_user) {
                     $pwd_check = $sqlite_user['password_hash'] ?? $sqlite_user['password'] ?? '';
                     
-                    if (password_verify($password, $pwd_check)) {
+                    // Accept hashed passwords and legacy plaintext values from the old SQLite DB
+                    $info = password_get_info($pwd_check);
+                    $is_hashed = !empty($info['algo']);
+                    if (($is_hashed && password_verify($password, $pwd_check)) || (!$is_hashed && $password === $pwd_check)) {
                         // Found in old DB! Automatic Migration.
                         $mysql = get_db();
                         
@@ -112,12 +139,15 @@ $debug_info = '<pre>' . htmlspecialchars(print_r($dbg, true)) . '</pre>';
                             $avatar_blob = file_get_contents($sqlite_user['avatar']);
                         }
                         
+                        // Ensure we store a secure hash in the new DB (migrate plaintext if necessary)
+                        $store_hash = $is_hashed ? $pwd_check : password_hash($password, PASSWORD_DEFAULT);
+                        
                         // Insert into MySQL
                         $ins = $mysql->prepare("INSERT INTO users (username, email, password_hash, approved, timezone, email_notifications, avatar, avatar_content, bio, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                         $ins->execute([
                             $sqlite_user['username'], 
                             $sqlite_user['email'], 
-                            $pwd_check, 
+                            $store_hash, 
                             $sqlite_user['approved'] ?? 1,
                             $sqlite_user['timezone'] ?? 'Europe/London',
                             $sqlite_user['email_notifications'] ?? 0,
@@ -210,7 +240,7 @@ $debug_info = '<pre>' . htmlspecialchars(print_r($dbg, true)) . '</pre>';
     </script>
     
     <!-- reCAPTCHA v3 (only on production) -->
-    <?php if (strpos($_SERVER['HTTP_HOST'], 'osrg.local') === false && strpos($_SERVER['HTTP_HOST'], 'connect.osrg.lol') === false): ?>
+    <?php if (strpos($_SERVER['HTTP_HOST'], 'connect.osrg.lol') !== false): ?>
     <script src="https://www.google.com/recaptcha/api.js?render=<?= RECAPTCHA_SITE_KEY ?>"></script>
     <?php endif; ?>
     <style>
@@ -247,7 +277,7 @@ $debug_info = '<pre>' . htmlspecialchars(print_r($dbg, true)) . '</pre>';
         }
         
         // reCAPTCHA v3 integration (only on production)
-        <?php if (strpos($_SERVER['HTTP_HOST'], 'osrg.local') === false && strpos($_SERVER['HTTP_HOST'], 'connect.osrg.lol') === false): ?>
+        <?php if (strpos($_SERVER['HTTP_HOST'], 'connect.osrg.lol') !== false): ?>
         document.addEventListener('DOMContentLoaded', function() {
             const form = document.getElementById('loginForm');
             form.addEventListener('submit', function(e) {
@@ -255,6 +285,14 @@ $debug_info = '<pre>' . htmlspecialchars(print_r($dbg, true)) . '</pre>';
                 const submitBtn = document.getElementById('submitBtn');
                 submitBtn.disabled = true;
                 submitBtn.textContent = 'Verifying...';
+                
+                // Ensure cookie_consent hidden input populated before grecaptcha may submit programmatically
+                (function(){
+                    var consentVal = localStorage.getItem('cookie_consent') || 'accepted';
+                    var ccEl = document.getElementById('cookie_consent_input');
+                    if (ccEl) ccEl.value = consentVal;
+                    try { document.cookie = 'cookie_consent=' + consentVal + '; path=/'; } catch(e){}
+                })();
                 
                 grecaptcha.ready(function() {
                     grecaptcha.execute('<?= RECAPTCHA_SITE_KEY ?>', {action: 'login'}).then(function(token) {

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Valley Game</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Home Link -->
+    <a href="/" id="home-link">🏠</a>
+    
+    <div id="game-container">
+        <!-- Scenery Containers -->
+        <div id="scenery-left"></div> 
+        <div id="scenery-right"></div>
+
+        <!-- Road and Car -->
+        <div id="road"></div>
+        <div id="car">
+            <span id="front-wheels"></span>
+            <span id="rear-wheels"></span>
+        </div>
+
+        <!-- UI Elements -->
+        <div id="score-container">
+            <span id="score-display">SCORE: 0</span>
+        </div>
+        <div id="speed-display-container">
+            <span id="speed-value">10</span>
+            <span class="speed-unit">km/h</span>
+        </div>
+        <div id="lives-display">❤️❤️❤️❤️</div>
+        <div id="level-display"></div>
+        <div id="level-title-display"></div>
+        <div id="level-popup"></div>
+
+        <!-- Control Buttons -->
+        <div id="controls">
+            <button id="left-btn" class="control-btn">←</button>
+            <button id="pause-btn" class="icon-btn">
+                <span>&#10074;&#10074;</span>
+            </button>
+            <button id="mute-btn" class="icon-btn">
+                <span>&#128266;</span>
+            </button>
+            <button id="right-btn" class="control-btn">→</button>
+        </div>
+
+        <!-- Start Screen -->
+        <div id="start-screen">
+            <div id="title">Vale da Cerca dos Pomares</div>
+            <button id="start-btn">START</button>
+        </div>
+
+        <!-- Game Over Screen -->
+        <div id="game-over">
+            <h2>Game Over</h2>
+            <p>Pontuação: <span id="final-score">0</span></p>
+            <button id="restart-btn">JOGAR NOVAMENTE</button>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

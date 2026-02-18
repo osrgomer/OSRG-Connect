@@ -42,7 +42,7 @@
             if (!confirm('Exit God Mode and return to admin panel?')) return;
             
             try {
-                const response = await fetch('api_series_admin.php?action=exit_impersonate');
+                const response = await fetch('series_api_admin.php?action=exit_impersonate');
                 const data = await response.json();
                 
                 if (data.success) {
@@ -68,7 +68,7 @@
             <nav class="hidden md:flex items-center gap-1">
                 <a href="index.php" class="px-3 py-2 text-sm font-bold text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 rounded-lg transition-colors"><i class="fas fa-home mr-1"></i>Connect</a>
                 <a href="series_index.php" class="px-3 py-2 text-sm font-medium <?php echo ($current_page ?? '') === 'library' ? 'text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30' : 'text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-50 dark:hover:bg-slate-700'; ?> rounded-lg transition-colors">Library</a>
-                <a href="series_friends.php" class="px-3 py-2 text-sm font-medium <?php echo ($current_page ?? '') === 'friends' ? 'text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30' : 'text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-50 dark:hover:bg-slate-700'; ?> rounded-lg transition-colors">Friends</a>
+                <a href="friends.php" class="px-3 py-2 text-sm font-medium <?php echo ($current_page ?? '') === 'friends' ? 'text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30' : 'text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-50 dark:hover:bg-slate-700'; ?> rounded-lg transition-colors">Friends</a>
                 <a href="series_trivia.php" class="px-3 py-2 text-sm font-medium <?php echo ($current_page ?? '') === 'trivia' ? 'text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30' : 'text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-50 dark:hover:bg-slate-700'; ?> rounded-lg transition-colors">Trivia</a>
                 <a href="series_account.php" class="px-3 py-2 text-sm font-medium <?php echo ($current_page ?? '') === 'account' ? 'text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30' : 'text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-50 dark:hover:bg-slate-700'; ?> rounded-lg transition-colors">Account</a>
                 <?php if ((isset($_SESSION['user_email']) && $_SESSION['user_email'] === 'omersr12@gmail.com') || isset($_SESSION['admin_origin'])): ?>
@@ -127,7 +127,7 @@
                     </button>
                     <div id="mobileMenu" class="hidden absolute right-0 top-12 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg py-2 min-w-[120px]">
                         <a href="series_index.php" class="block px-4 py-2 text-sm font-medium <?php echo ($current_page ?? '') === 'library' ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'; ?>">Library</a>
-                        <a href="series_friends.php" class="block px-4 py-2 text-sm font-medium <?php echo ($current_page ?? '') === 'friends' ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'; ?>">Friends</a>
+                        <a href="friends.php" class="block px-4 py-2 text-sm font-medium <?php echo ($current_page ?? '') === 'friends' ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'; ?>">Friends</a>
                         <a href="series_trivia.php" class="block px-4 py-2 text-sm font-medium <?php echo ($current_page ?? '') === 'trivia' ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'; ?>">Trivia</a>
                         <a href="series_account.php" class="block px-4 py-2 text-sm font-medium <?php echo ($current_page ?? '') === 'account' ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'; ?>">Account</a>
                         <?php if ((isset($_SESSION['user_email']) && $_SESSION['user_email'] === 'omersr12@gmail.com') || isset($_SESSION['admin_origin'])): ?>
@@ -200,7 +200,7 @@
                         return `
                             <div class="px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700 border-b border-slate-100 dark:border-slate-700 last:border-b-0 ${isNew ? 'bg-indigo-50 dark:bg-indigo-900/20' : ''}">
                                 <div class="flex items-start gap-3">
-                                    <img src="${activity.user.avatar}" class="w-8 h-8 rounded-full flex-shrink-0">
+                                    <img src="${ (activity.user && activity.user.avatar && (activity.user.avatar.startsWith('http') || activity.user.avatar.includes('serve_asset.php') || activity.user.avatar.startsWith('/'))) ? activity.user.avatar : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(activity.user.username || 'User') }" class="w-8 h-8 rounded-full flex-shrink-0" onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name='+encodeURIComponent('${activity.user.username || 'User'}')">
                                     <div class="flex-1 min-w-0">
                                         <p class="text-sm text-slate-800 dark:text-slate-100">
                                             <span class="font-semibold">${activity.user.username}</span>

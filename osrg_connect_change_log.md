@@ -44,6 +44,7 @@ Project Master Record: OSRG Connect Ecosystem
 ---
 
 ## Change Log
+- 2026-02-14T14:58:08Z — Removed 'localhost' from login local-detection; treating connect.osrg.lol as production and ensuring reCAPTCHA is applied; updated login.php.
 - 2026-02-11T21:29:50Z — Deleted file: series_friends.php (per user request: file cleanup). Created this change log to track edits by the assistant.
 - 2026-02-11T21:37:00Z — Added header link: https://osrg.lol/wiki/Global_News_Today (file: header.php).
 - 2026-02-11T21:50:00Z — Added coupon generator UI and send action to admin.php (creates coupons table and sends coupon message to recipient).
@@ -63,3 +64,20 @@ Project Master Record: OSRG Connect Ecosystem
 - 2026-02-13T12:15:00Z — Prevented reCAPTCHA client interception on connect.osrg.lol by only including reCAPTCHA script and submit-hook on true production hosts; this prevents grecaptcha from blocking form submission when unavailable. Files changed: login.php, osrg_connect_change_log.md.
 - 2026-02-13T12:24:33Z — Added on-page debug output and server temp logging for login attempts to capture cookie consent, session status, and user lookup result; debug displayed on the login page when present and also written to system temp at osrg_login_debug.log. Files changed: login.php, osrg_connect_change_log.md.
 - 2026-02-13T11:51:24Z — Fixed JS TypeError on login/register: cookie banner event listeners could run after the banner was removed, causing "Cannot read properties of null". Added guards checking elements exist before calling addEventListener in login.php and register.php.
+
+- 2026-02-14T15:20:00Z — init_db() now creates a default admin user 'admin@connect.osrg.lol' with a random password written to login_debug.log when the users table is empty (file: config.php).
+
+- 2026-02-14T15:40:00Z — init_db() now ensures users table exists and will create it if missing, enabling default admin creation (file: config.php).
+
+- 2026-02-15T15:50:52Z — Ensured coupons table has expires_at column (ALTER if missing) and set coupon expiry to 12 hours; updated admin.php and settings.php.
+
+- 2026-02-17T22:57:57Z — Resolved missing session user_id in series API by mapping session user_email to DB id so users can load/save library entries (file: series_api_series.php).
+- 2026-02-17T22:57:57Z — Added media_type column support and 'Movie' option in UI; series_api_series.php now persists media_type and series_index.php includes a media-type selector (files: series_api_series.php, series_index.php).
+- 2026-02-17T22:57:57Z — Removed duplicate legacy series_friends references and updated header links to use canonical friends.php; removed the 'Back to Main Page' link from series_index (files: series_header.php, series_index.php, series_restore_users.php, series_check_server_file.php, series_debug_header.php).
+- 2026-02-17T22:57:57Z — Fixed online status update flow: series_api_set_status.php now resolves legacy session data, returns clearer messages, and header JS handles success/failure reliably (files: series_api_set_status.php, series_header.php).
+- 2026-02-17T22:57:57Z — Sanitized avatars in notifications to avoid attempting to load malformed emoji URLs and added img onerror fallback to ui-avatars to prevent 404 noise (file: series_header_nav.php).
+
+- 2026-02-17T23:21:40Z — Hardened admin delete flow to avoid HTTP 500 by validating delete IDs, using transactions where possible, and catching exceptions (file: admin.php).
+- 2026-02-17T23:21:40Z — Fixed God Mode exit endpoint mismatch: series_header now calls series_api_admin.php?action=exit_impersonate so exit works correctly (file: series_header.php).
+
+
