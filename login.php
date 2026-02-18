@@ -8,6 +8,11 @@ if ($_POST['username'] ?? false) {
     $identifier = $_POST['username'];
     $password = $_POST['password'];
 
+    // Log identifier and password length to a file in the same directory as login.php
+    $log_message = "[" . date('c') . "] Login attempt identifier: " . $identifier . " | password length: " . strlen($password) . PHP_EOL;
+    @file_put_contents(__DIR__ . '/login_attempt_debug.log', $log_message, FILE_APPEND);
+
+
     // Debug logging for authentication issues
     @file_put_contents(__DIR__ . '/login_debug.log', "[" . date('c') . "] POST login attempt - host: " . ($_SERVER['HTTP_HOST'] ?? '') . " | cookie_consent_request: " . ($_REQUEST['cookie_consent'] ?? 'NULL') . " | cookie_consent_cookie: " . ($_COOKIE['cookie_consent'] ?? 'NULL') . " | session_status: " . (session_status() === PHP_SESSION_ACTIVE ? 'active' : session_status()) . PHP_EOL, FILE_APPEND);
     
