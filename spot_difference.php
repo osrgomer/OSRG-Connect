@@ -185,10 +185,9 @@ require_once 'header.php';
     
     <div class="instructions">
         <strong>How to Play:</strong><br>
-        • Click on the red circles to find all differences<br>
-        • Find all 5 differences to win the game<br>
-        • Each difference gives you 10 points<br>
-        • Click "New Game" to generate new differences
+        • Find all 5 differences between the two images to win!<br>
+        • Each found difference gives you 10 points.<br>
+        • Click "New Game" to reset the game.
     </div>
     
     <div class="game-container">
@@ -225,21 +224,14 @@ let score = 0;
 let gameRunning = true;
 
 function generateDifferences() {
-    differences = [];
-    for (let i = 0; i < 5; i++) {
-        // Calculate position that works for both canvases
-        const x = Math.random() * (canvas1.width - 40) + 20;
-        const offset = Math.random() * 40 - 20; // Random offset between -20 and 20
-        
-        differences.push({
-            x1: x,
-            x2: x + offset,
-            y: Math.random() * (canvas1.height - 40) + 20,
-            radius: 20,
-            found: false,
-            color: `hsl(${Math.random() * 360}, 70%, 50%)`
-        });
-    }
+    // Fixed differences based on the actual SVG assets
+    differences = [
+        { name: 'Sun color change', x1: 50, x2: 50, y: 50, radius: 30, found: false },
+        { name: 'Cloud moved', x1: 290, x2: 300, y: 35, radius: 30, found: false },
+        { name: 'Beach ball moved', x1: 100, x2: 120, y: 250, radius: 20, found: false },
+        { name: 'Extra palm leaf', x1: 290, x2: 290, y: 145, radius: 25, found: false },
+        { name: 'Added bird', x1: 200, x2: 200, y: 55, radius: 20, found: false }
+    ];
 }
 
 function drawGame() {
@@ -248,27 +240,7 @@ function drawGame() {
     
     // Draw differences
     differences.forEach((diff) => {
-        if (!diff.found) {
-            // Draw circle with gradient on first canvas
-            const gradient1 = ctx1.createRadialGradient(diff.x1, diff.y, 0, diff.x1, diff.y, diff.radius);
-            gradient1.addColorStop(0, diff.color);
-            gradient1.addColorStop(1, diff.color.replace(')', ', 0.5)').replace('hsl', 'hsla'));
-            
-            ctx1.fillStyle = gradient1;
-            ctx1.beginPath();
-            ctx1.arc(diff.x1, diff.y, diff.radius, 0, Math.PI * 2);
-            ctx1.fill();
-            
-            // Draw circle with gradient on second canvas
-            const gradient2 = ctx2.createRadialGradient(diff.x2, diff.y, 0, diff.x2, diff.y, diff.radius);
-            gradient2.addColorStop(0, diff.color);
-            gradient2.addColorStop(1, diff.color.replace(')', ', 0.5)').replace('hsl', 'hsla'));
-            
-            ctx2.fillStyle = gradient2;
-            ctx2.beginPath();
-            ctx2.arc(diff.x2, diff.y, diff.radius, 0, Math.PI * 2);
-            ctx2.fill();
-        } else {
+        if (diff.found) {
             // Draw found indicators on both canvases
             [ctx1, ctx2].forEach((ctx, index) => {
                 const x = index === 0 ? diff.x1 : diff.x2;
