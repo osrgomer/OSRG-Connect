@@ -36,4 +36,9 @@
     <!-- Bird - Added second bird -->
     <path d="M200,80 Q210,70 220,80 Q230,70 240,80" stroke="black" fill="none"/>
     <path d="M180,60 Q190,50 200,60 Q210,50 220,60" stroke="black" fill="none"/>
+
+    <!-- Fish in ocean - not in scene1 -->
+    <ellipse cx="200" cy="185" rx="14" ry="7" fill="#FF6347"/>
+    <polygon points="214,185 224,178 224,192" fill="#FF6347"/>
+    <circle cx="192" cy="183" r="2" fill="white"/>
 </svg>

@@ -47,23 +47,19 @@ try {
     }
 
 function generateDifferences() {
-    $diffs = [];
-    for ($i = 0; $i < 5; $i++) {
-        // Generate coordinates for both images, slightly different
-        $y = rand(50, 250);
-        $x1 = rand(50, 350);
-        $x2 = $x1 + (rand(-20, 20)); // Slightly different x position in second image
-        
-        $diffs[] = [
-            'x1' => $x1,
-            'x2' => $x2,
-            'y' => $y,
-            'radius' => 25,
-            'found' => false,
-            'color' => sprintf("hsl(%d, 70%%, 50%%)", rand(0, 360))
-        ];
-    }
-    return $diffs;
+    // Hardcoded positions matching actual visual differences between scene1.svg and scene2.svg.
+    // 1. Cloud 2 shifted right in scene2
+    // 2. Beach ball shifted right in scene2
+    // 3. Extra palm-tree leaf in scene2
+    // 4. Extra bird in scene2
+    // 5. Fish in ocean of scene2
+    return [
+        ['x1' => 290, 'x2' => 300, 'y' => 35,  'radius' => 25, 'found' => false],
+        ['x1' => 100, 'x2' => 120, 'y' => 250, 'radius' => 25, 'found' => false],
+        ['x1' => 290, 'x2' => 290, 'y' => 147, 'radius' => 25, 'found' => false],
+        ['x1' => 200, 'x2' => 200, 'y' => 60,  'radius' => 25, 'found' => false],
+        ['x1' => 200, 'x2' => 200, 'y' => 185, 'radius' => 25, 'found' => false],
+    ];
 }
 
     // Use a directory inside the uploads directory which should already exist and be writable
