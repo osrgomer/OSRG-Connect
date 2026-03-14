@@ -36,4 +36,5 @@
     <!-- Bird - Added second bird -->
     <path d="M200,80 Q210,70 220,80 Q230,70 240,80" stroke="black" fill="none"/>
     <path d="M180,60 Q190,50 200,60 Q210,50 220,60" stroke="black" fill="none"/>
+
 </svg>

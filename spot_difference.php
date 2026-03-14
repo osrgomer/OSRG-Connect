@@ -163,14 +163,14 @@ $additional_css = '
         body { padding-top: 60px; }
         .game-wrapper { padding: 25px 20px; margin: 15px; }
         h1 { font-size: 1.8em; margin-bottom: 20px; }
-        #gameCanvas { height: 300px; max-width: 100%; }
+        #gameCanvas1, #gameCanvas2 { height: 300px; max-width: 100%; }
         #score { font-size: 20px; }
         .instructions { font-size: 12px; padding: 15px; }
     }
     @media (max-width: 480px) {
         .game-wrapper { padding: 20px 15px; }
         h1 { font-size: 1.5em; }
-        #gameCanvas { height: 250px; }
+        #gameCanvas1, #gameCanvas2 { height: 250px; }
         #score { font-size: 18px; }
     }
 ';
@@ -185,9 +185,10 @@ require_once 'header.php';
     
     <div class="instructions">
         <strong>How to Play:</strong><br>
-        • Find all 5 differences between the two images to win!<br>
-        • Each found difference gives you 10 points.<br>
-        • Click "New Game" to reset the game.
+        • Look carefully at both images and find the 5 differences between them<br>
+        • Click directly on a difference in either image to mark it as found<br>
+        • Find all 5 differences to win the game<br>
+        • Each difference gives you 10 points
     </div>
     
     <div class="game-container">
@@ -223,34 +224,42 @@ let differences = [];
 let score = 0;
 let gameRunning = true;
 
-function generateDifferences() {
-    // Fixed differences based on the actual SVG assets
-    differences = [
+// Hardcoded actual difference positions matching the two SVG images.
+// x1 = position in scene1, x2 = position in scene2, y is the same on both.
+// Differences:
+//   1. Cloud 2 shifted right in scene2
+//   2. Beach ball shifted right in scene2
+//   3. Extra palm-tree leaf added in scene2
+//   4. Extra bird added in scene2
+//   5. Fish added in scene2's ocean
+function getDifferences() {
+    return [
         { name: 'Sun color change', x1: 50, x2: 50, y: 50, radius: 30, found: false },
-        { name: 'Cloud moved', x1: 290, x2: 300, y: 35, radius: 30, found: false },
-        { name: 'Beach ball moved', x1: 100, x2: 120, y: 250, radius: 20, found: false },
-        { name: 'Extra palm leaf', x1: 290, x2: 290, y: 145, radius: 25, found: false },
-        { name: 'Added bird', x1: 200, x2: 200, y: 55, radius: 20, found: false }
+        { name: 'Cloud moved', x1: 290, x2: 300, y: 35, radius: 25, found: false },
+        { name: 'Beach ball moved', x1: 100, x2: 120, y: 250, radius: 25, found: false },
+        { name: 'Extra palm leaf', x1: 290, x2: 290, y: 147, radius: 25, found: false },
+        { name: 'Added bird', x1: 200, x2: 200, y: 60, radius: 25, found: false }
     ];
 }
 
 function drawGame() {
     ctx1.clearRect(0, 0, canvas1.width, canvas1.height);
     ctx2.clearRect(0, 0, canvas2.width, canvas2.height);
-    
-    // Draw differences
+
     differences.forEach((diff) => {
         if (diff.found) {
-            // Draw found indicators on both canvases
-            [ctx1, ctx2].forEach((ctx, index) => {
-                const x = index === 0 ? diff.x1 : diff.x2;
-                
-                ctx.fillStyle = '#28a745';
+            // Draw green confirmation circle on both canvases
+            [{ ctx: ctx1, x: diff.x1 }, { ctx: ctx2, x: diff.x2 }].forEach(({ ctx, x }) => {
+                ctx.save();
+                ctx.fillStyle = 'rgba(40, 167, 69, 0.35)';
+                ctx.strokeStyle = '#28a745';
+                ctx.lineWidth = 3;
                 ctx.beginPath();
                 ctx.arc(x, diff.y, diff.radius, 0, Math.PI * 2);
                 ctx.fill();
-                
-                // Draw checkmark
+                ctx.stroke();
+
+                // Checkmark
                 ctx.strokeStyle = '#fff';
                 ctx.lineWidth = 3;
                 ctx.beginPath();
@@ -258,33 +267,31 @@ function drawGame() {
                 ctx.lineTo(x - 2, diff.y + 6);
                 ctx.lineTo(x + 8, diff.y - 6);
                 ctx.stroke();
+                ctx.restore();
             });
         }
+        // Unfound differences are intentionally invisible – players must spot them naturally.
     });
 }
 
 function checkClick(mouseX, mouseY, isFirstCanvas) {
     if (!gameRunning) return;
-    
+
     differences.forEach((diff) => {
         if (!diff.found) {
-            const x = isFirstCanvas ? diff.x1 : diff.x2;
+            const x  = isFirstCanvas ? diff.x1 : diff.x2;
             const dx = mouseX - x;
             const dy = mouseY - diff.y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-            
-            if (distance < diff.radius) {
+            if (Math.sqrt(dx * dx + dy * dy) < diff.radius) {
                 diff.found = true;
                 score++;
                 scoreDisplay.textContent = `Score: ${score} / 5`;
-                
+
                 if (score === 5) {
                     gameRunning = false;
-                    setTimeout(() => {
-                        gameOverDiv.style.display = 'block';
-                    }, 500);
+                    setTimeout(() => { gameOverDiv.style.display = 'block'; }, 500);
                 }
-                
+
                 drawGame();
             }
         }
@@ -296,28 +303,28 @@ function newGame() {
     gameRunning = true;
     scoreDisplay.textContent = 'Score: 0 / 5';
     gameOverDiv.style.display = 'none';
-    generateDifferences();
+    differences = getDifferences();
     drawGame();
 }
 
 ['gameCanvas1', 'gameCanvas2'].forEach(canvasId => {
-    document.getElementById(canvasId).addEventListener('click', (e) => {
-        const canvas = document.getElementById(canvasId);
+    const canvas = document.getElementById(canvasId);
+    const isFirst = canvasId === 'gameCanvas1';
+
+    canvas.addEventListener('click', (e) => {
         const rect = canvas.getBoundingClientRect();
         const mouseX = (e.clientX - rect.left) * (canvas.width / rect.width);
-        const mouseY = (e.clientY - rect.top) * (canvas.height / rect.height);
-        checkClick(mouseX, mouseY, canvasId === 'gameCanvas1');
+        const mouseY = (e.clientY - rect.top)  * (canvas.height / rect.height);
+        checkClick(mouseX, mouseY, isFirst);
     });
 
-    // Touch support for mobile
-    document.getElementById(canvasId).addEventListener('touchstart', (e) => {
+    canvas.addEventListener('touchstart', (e) => {
         e.preventDefault();
-        const canvas = document.getElementById(canvasId);
-        const rect = canvas.getBoundingClientRect();
+        const rect  = canvas.getBoundingClientRect();
         const touch = e.touches[0];
         const mouseX = (touch.clientX - rect.left) * (canvas.width / rect.width);
-        const mouseY = (touch.clientY - rect.top) * (canvas.height / rect.height);
-        checkClick(mouseX, mouseY, canvasId === 'gameCanvas1');
+        const mouseY = (touch.clientY - rect.top)  * (canvas.height / rect.height);
+        checkClick(mouseX, mouseY, isFirst);
     });
 });
 

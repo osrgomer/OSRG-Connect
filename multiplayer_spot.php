@@ -175,7 +175,7 @@ $additional_css = '
         body { padding-top: 60px; }
         .game-wrapper { padding: 25px 20px; margin: 15px; }
         h1 { font-size: 1.8em; margin-bottom: 20px; }
-        #gameCanvas { height: 300px; max-width: 100%; }
+#gameCanvas1, #gameCanvas2 { height: 300px; max-width: 100%; }
         .scoreboard { flex-direction: column; }
         .room-input { width: 150px; margin-bottom: 10px; }
     }
@@ -197,16 +197,19 @@ require_once 'header.php';
     
     <div id="gameArea" style="display: none;">
         <div class="scoreboard" id="scoreboard"></div>
+        <div class="game-counter" id="differenceCounter" style="text-align: center; margin-bottom: 10px; font-size: 18px; font-weight: bold; color: #1877f2;">
+            Found Differences: <span id="foundCount">0</span> / <span id="totalCount">0</span>
+        </div>
         <div class="game-images">
-            <div class="game-counter" id="differenceCounter" style="text-align: center; margin-bottom: 10px; font-size: 18px; font-weight: bold; color: #1877f2;">
-                Found Differences: <span id="foundCount">0</span> / <span id="totalCount">0</span>
-            </div>
             <div class="game-image">
-                <img src="" id="image1" alt="Spot the Difference Image 1">
+                <img src="sp_assets/spot_the_difference/scene1.svg" id="image1" alt="Spot the Difference Image 1">
                 <canvas id="gameCanvas1" width="400" height="300"></canvas>
             </div>
             <div class="game-image">
-                <img src="" id="image2" alt="Spot the Difference Image 2">
+                <img src="sp_assets/spot_the_difference/scene2.svg" id="image2" alt="Spot the Difference Image 2">
+                <canvas id="gameCanvas2" width="400" height="300"></canvas>
+            </div>
+        </div>
                 <canvas id="gameCanvas2" width="400" height="300"></canvas>
             </div>
         </div>
@@ -364,41 +367,14 @@ function updateGameState(data) {
     document.getElementById('foundCount').textContent = foundCount;
     document.getElementById('totalCount').textContent = totalCount;
     
-    // Set placeholder images if not already set
     const image1 = document.getElementById('image1');
     const image2 = document.getElementById('image2');
     
-    // Add handlers for images
-    const handleImageError = (img, num) => {
-        console.error(`Failed to load image ${num}:`, img.src);
-        showStatus(`Failed to load image ${num}. Check console for details.`, 'error');
-    };
-
-    const handleImageLoad = (img, num) => {
-        console.log(`Image ${num} loaded successfully:`, img.src);
-        drawGame(); // Redraw after image loads
-    };
-    
-    image1.onerror = () => handleImageError(image1, 1);
-    image2.onerror = () => handleImageError(image2, 2);
-    
-    image1.onload = () => handleImageLoad(image1, 1);
-    image2.onload = () => handleImageLoad(image2, 2);
-    
-    <?php $baseUrl = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https://' : 'http://' . $_SERVER['HTTP_HOST']; ?>
-    const timestamp = new Date().getTime();
-    const baseUrl = '<?php echo $baseUrl; ?>';
-    
-    if (!image1.src || !image1.src.includes('scene1.svg')) {
-        const path1 = 'https://osrg.lol/osrgassets/spot_the_difference/scene1.svg';
-        console.log('Setting image1 src to:', path1);
-        image1.src = path1 + '?' + timestamp;
-    }
-    if (!image2.src || !image2.src.includes('scene2.svg')) {
-        const path2 = 'https://osrg.lol/osrgassets/spot_the_difference/scene2.svg';
-        console.log('Setting image2 src to:', path2);
-        image2.src = path2 + '?' + timestamp;
-    }
+    // Re-attach handlers each update so drawGame is called after any reload
+    image1.onerror = () => showStatus('Failed to load image 1. Check console for details.', 'error');
+    image2.onerror = () => showStatus('Failed to load image 2. Check console for details.', 'error');
+    image1.onload = () => drawGame();
+    image2.onload = () => drawGame();
     
     updateScoreboard();
     drawGame();
@@ -427,44 +403,57 @@ function drawGame() {
     
     // Only draw if images are loaded
     if (!image1.complete || !image2.complete) {
-        setTimeout(drawGame, 100); // Try again in 100ms if images aren't loaded
-        return;
-    }
-
-    const canvas1 = document.getElementById('gameCanvas1');
-    const canvas2 = document.getElementById('gameCanvas2');
-    const ctx1 = canvas1.getContext('2d');
-    const ctx2 = canvas2.getContext('2d');
-    
-    ctx1.clearRect(0, 0, canvas1.width, canvas1.height);
-    ctx2.clearRect(0, 0, canvas2.width, canvas2.height);
-    
-    // Draw differences
     differences.forEach((diff) => {
         if (diff.found) {
-            // Draw found indicators
-            [ctx1, ctx2].forEach((ctx, index) => {
-                const x = index === 0 ? diff.x1 : diff.x2;
-                
-                // Draw green circle
-                ctx.fillStyle = 'rgba(40, 167, 69, 0.3)';
+            [{ ctx: ctx1, x: diff.x1 }, { ctx: ctx2, x: diff.x2 }].forEach(({ ctx, x }) => {
+                ctx.save();
+                ctx.fillStyle = 'rgba(40, 167, 69, 0.35)';
                 ctx.strokeStyle = '#28a745';
-                ctx.lineWidth = 2;
+                ctx.lineWidth = 3;
                 ctx.beginPath();
                 ctx.arc(x, diff.y, diff.radius, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.stroke();
-                
-                // Draw checkmark
-                ctx.strokeStyle = '#28a745';
+
+                ctx.strokeStyle = '#fff';
                 ctx.lineWidth = 3;
                 ctx.beginPath();
                 ctx.moveTo(x - 8, diff.y);
                 ctx.lineTo(x - 2, diff.y + 6);
                 ctx.lineTo(x + 8, diff.y - 6);
                 ctx.stroke();
+                ctx.restore();
             });
         }
+        // Unfound differences are intentionally invisible – players must spot them naturally.
+    });
+                ctx.beginPath();
+                ctx.arc(x, diff.y, diff.radius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+<<<<<<< HEAD
+                
+                // Draw checkmark
+                ctx.strokeStyle = '#28a745';
+=======
+
+                ctx.strokeStyle = '#fff';
+>>>>>>> origin/copilot/fix-random-circles-issue
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(x - 8, diff.y);
+                ctx.lineTo(x - 2, diff.y + 6);
+                ctx.lineTo(x + 8, diff.y - 6);
+                ctx.stroke();
+<<<<<<< HEAD
+            });
+        }
+=======
+                ctx.restore();
+            });
+        }
+        // Unfound differences are intentionally invisible – players must spot them naturally.
+>>>>>>> origin/copilot/fix-random-circles-issue
     });
 }
 
