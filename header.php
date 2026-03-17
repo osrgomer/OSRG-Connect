@@ -283,7 +283,7 @@ if (!isset($_SESSION['user_id'])) {
         
         <div class="nav-links" id="navLinks">
             <a href="index.php">Home</a>
-            <a href="https://osrg.lol/wiki/Global_News_Today" target="_blank" rel="noopener noreferrer">Global News</a>
+            <a href="global_news.html">Global News</a>
             <a href="series_index.php" style="color: #4c1130; font-weight: bold;">📺 Series List</a>
             <a href="reels.php">🎬 Reels</a>
             <a href="games.php">🎮 Games</a>

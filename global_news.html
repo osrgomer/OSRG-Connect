@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Daily Global News</title>
+    <style>
+        body {
+            font-family: "Segoe UI", system-ui, sans-serif;
+            background: #f3f5f9;
+            margin: 0;
+            padding: 0;
+        }
+        .wrapper {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 56px 24px;
+        }
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 32px;
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+        }
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 12px;
+            color: #1f2937;
+        }
+        p {
+            color: #475569;
+            line-height: 1.6;
+        }
+        .hint {
+            color: #2563eb;
+            font-weight: 600;
+            margin-top: 24px;
+        }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <div class="card">
+            <h1>Daily Global News</h1>
+            <p>The latest news summary is generated each morning using the Gemini API. When the runner succeeds, this page will refresh with the curated headlines and sources.</p>
+            <p>If you are visiting before the bot runs, please check back after the scheduled update or trigger the workflow manually via the repository's Actions tab.</p>
+            <p class="hint">Last updated: Placeholder. The GitHub runner will replace this content automatically.</p>
+        </div>
+    </div>
+</body>
+</html>

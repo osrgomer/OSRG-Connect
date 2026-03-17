@@ -125,4 +125,6 @@ This file will be edited and appended after any further edits made by the assist
 
 2026-03-18 — Updated the notification bell so message and friend-request events show action links and route directly to the chat or friend-approval area (files: header.php, series_api_activity.php, users.php, index.php).
 
+2026-03-19 — Pointed the navigation's Global News button to a local `global_news.html`, added the page placeholder, and reworked `news_bot.py` plus `run_news.yml` so the Gemini-powered runner writes that digest while respecting the shared `mine_config.php` API key (files: header.php, global_news.html, news_bot.py, .github/workflows/run_news.yml).
+
 2026-02-17T22:57:57Z — Streamlined navigation by removing redundant 'friends' references and prioritizing canonical links.
