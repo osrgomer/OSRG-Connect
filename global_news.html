@@ -2,67 +2,30 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Daily Global News</title>
     <style>
-        body {
-            font-family: "Segoe UI", system-ui, sans-serif;
-            background: #f3f5f9;
-            margin: 0;
-            padding: 0;
-        }
-        .wrapper {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 56px 24px;
-        }
-        .card {
-            background: white;
-            border-radius: 12px;
-            padding: 32px;
-            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
-        }
-        h1 {
-            font-size: 2rem;
-            margin-bottom: 12px;
-            color: #1f2937;
-        }
-        p {
-            color: #475569;
-            line-height: 1.6;
-        }
-        .hint {
-            color: #2563eb;
-            font-weight: 600;
-            margin-top: 24px;
-        }
+        body { font-family: "Segoe UI", system-ui, sans-serif; background: #f3f5f9; margin: 0; padding: 0; }
+        .wrapper { max-width: 960px; margin: 0 auto; padding: 48px 24px; }
+        .card { background: white; border-radius: 16px; padding: 32px; box-shadow: 0 12px 36px rgba(15, 23, 42, 0.12); }
+        h1 { margin-bottom: 12px; color: #1e293b; }
+        p { color: #475569; line-height: 1.7; }
+        .meta { margin-top: 32px; font-size: 0.9rem; color: #0f172a; }
+        .status { color: #1d4ed8; font-weight: 600; margin-top: 6px; }
+        a { color: #2563eb; }
+        .home-link { display: inline-flex; margin-top: 24px; padding: 12px 18px; background: #1d4ed8; color: #fff; border-radius: 10px; text-decoration: none; font-weight: 600; box-shadow: 0 10px 22px rgba(29, 64, 188, 0.25); }
+        .home-link:hover { transform: translateY(-1px); }
     </style>
 </head>
 <body>
     <div class="wrapper">
         <div class="card">
-            <h1>Daily Global News</h1>
-            <p>The latest news summary is generated each morning using the Gemini API. When the runner succeeds, this page will refresh with the curated headlines and sources.</p>
-            <p>If you are visiting before the bot runs, please check back after the scheduled update or trigger the workflow manually via the repository's Actions tab.</p>
-            <p class="hint">Last updated: Placeholder. The GitHub runner will replace this content automatically.</p>
-            <a href="index.php" class="home-link">Back to Connect</a>
+            <h1>Global News Digest</h1>
+            <div class="status">Runner paused: no API key.</div>
+            <div class="meta">Summary prepared for Lisbon on March 17, 2026 · 2026-03-17 20:35 WET</div>
+            <div class="content"><p>Please set the <strong>GEMINI_API_KEY</strong> secret before running the news runner.</p></div>
+            <a class="home-link" href="index.php">Back to Connect</a>
         </div>
     </div>
-    <style>
-        .home-link {
-            display: inline-flex;
-            margin-top: 16px;
-            padding: 10px 16px;
-            background: #1d4ed8;
-            color: white;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: 600;
-            box-shadow: 0 8px 20px rgba(29, 78, 216, 0.25);
-        }
-        .home-link:hover {
-            transform: translateY(-1px);
-        }
-    </style>
 </body>
 </html>
