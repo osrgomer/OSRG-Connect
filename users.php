@@ -25,7 +25,7 @@ if ($_GET['add'] ?? false) {
         // Create notification for the recipient
         try {
             $notif_text = $current_user['username'] . " sent you a friend request";
-            $stmt_notif = $pdo->prepare("INSERT INTO user_activity (user_id, type, description, link) VALUES (?, 'friend_request', ?, 'friends.php')");
+            $stmt_notif = $pdo->prepare("INSERT INTO user_activity (user_id, type, description, link) VALUES (?, 'friend_request', ?, 'index.php#friend-requests')");
             $stmt_notif->execute([$friend_id, $notif_text]);
         } catch (Exception $e) {
             // Continue even if notification fails

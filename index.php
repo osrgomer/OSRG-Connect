@@ -530,7 +530,7 @@ if (isset($_POST['content'])) {
         <?php endif; ?>
 
         <?php if ($friend_requests): ?>
-        <div class="post" style="background: #e3f2fd; border-left: 4px solid #1877f2;">
+        <div id="friend-requests" class="post" style="background: #e3f2fd; border-left: 4px solid #1877f2;">
             <h3>Friend Requests</h3>
             <?php foreach ($friend_requests as $request): ?>
             <div class="friend-request-item" style="display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #ddd;">

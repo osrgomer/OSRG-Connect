@@ -86,18 +86,26 @@ try {
     $stmt = $pdo->query($sql);
     $raw_activities = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
-    foreach ($raw_activities as $act) {
-        $activities[] = [
-            'id' => $act['id'],
-            'type' => $act['type'],
-            'description' => $act['description'],
-            'text' => $act['description'], // compatibility
-            'link' => $act['link'],
-            'timestamp' => strtotime($act['created_at']),
-            'username' => $act['username'],
-            'avatar_url' => $act['avatar'] ? (strpos($act['avatar'], 'http') === 0 ? $act['avatar'] : 'serve_asset.php?file=' . basename($act['avatar'])) : null
-        ];
-    }
+        foreach ($raw_activities as $act) {
+            $link = $act['link'] ?? '';
+            if (empty($link)) {
+                if ($act['type'] === 'message') {
+                    $link = 'messages.php';
+                } elseif ($act['type'] === 'friend_request') {
+                    $link = 'index.php#friend-requests';
+                }
+            }
+            $activities[] = [
+                'id' => $act['id'],
+                'type' => $act['type'],
+                'description' => $act['description'],
+                'text' => $act['description'], // compatibility
+                'link' => $link,
+                'timestamp' => strtotime($act['created_at']),
+                'username' => $act['username'],
+                'avatar_url' => $act['avatar'] ? (strpos($act['avatar'], 'http') === 0 ? $act['avatar'] : 'serve_asset.php?file=' . basename($act['avatar'])) : null
+            ];
+        }
 
 } catch (Exception $e) {
     // Silent fail or return empty

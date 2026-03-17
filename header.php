@@ -107,6 +107,8 @@ if (!isset($_SESSION['user_id'])) {
         .notif-icon { width: 36px; height: 36px; border-radius: 50%; background: #e4e6eb; display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
         .notif-content { flex: 1; font-size: 0.9rem; }
         .notif-time { display: block; font-size: 0.75rem; color: #65676b; margin-top: 4px; }
+        .notif-action { display: inline-flex; margin-top: 6px; font-size: 0.75rem; color: #1877f2; font-weight: 600; letter-spacing: 0.01em; }
+        .notif-item.unread .notif-action { color: #0b64d2; }
         .empty-notif { padding: 40px 20px; text-align: center; color: #65676b; }
         /* Compact live network status */
         .live-status { display: inline-flex; gap: 8px; align-items: center; margin-right: 12px; }
@@ -167,22 +169,27 @@ if (!isset($_SESSION['user_id'])) {
             }
 
             function renderNotifications(activities) {
-                const html = activities.map(act => {
-                    const isUnread = !isRead(act.id);
-                    const icon = getIconForType(act.type);
-                    // Simplify: Just link to index or relevant page
-                    const link = act.link || '#';
-                    
-                    return `
-                        <a href="${link}" class="notif-item ${isUnread ? 'unread' : ''}">
-                            <div class="notif-icon">${icon}</div>
-                            <div class="notif-content">
-                                <div>${act.description || act.text}</div>
-                                <span class="notif-time">${formatTime(act.timestamp)}</span>
-                            </div>
-                        </a>
-                    `;
-                }).join('');
+                const html = activities
+                    .slice()
+                    .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))
+                    .map(act => {
+                        const isUnread = !isRead(act.id);
+                        const icon = getIconForType(act.type);
+                        const link = getNotificationLink(act);
+                        const summary = act.description || act.text || 'New activity';
+                        const actionLabel = getNotificationActionLabel(act);
+                        
+                        return `
+                            <a href="${link}" class="notif-item ${isUnread ? 'unread' : ''}">
+                                <div class="notif-icon">${icon}</div>
+                                <div class="notif-content">
+                                    <div>${summary}</div>
+                                    <span class="notif-time">${formatTime(act.timestamp)}</span>
+                                    <span class="notif-action">${actionLabel}</span>
+                                </div>
+                            </a>
+                        `;
+                    }).join('');
                 notifList.innerHTML = html;
             }
 
@@ -194,9 +201,37 @@ if (!isset($_SESSION['user_id'])) {
                     'follow': '👋',
                     'reel': '🎬',
                     'game': '🎮',
-                    'system': '🔧'
+                    'system': '🔧',
+                    'message': '✉️',
+                    'friend_request': '🤝'
                 };
                 return icons[type] || '🔔';
+            }
+
+            function getNotificationLink(act) {
+                if (act.link && act.link !== '#') {
+                    return act.link;
+                }
+                if (act.type === 'message') {
+                    return 'messages.php';
+                }
+                if (act.type === 'friend_request') {
+                    return 'index.php#friend-requests';
+                }
+                return '#';
+            }
+
+            function getNotificationActionLabel(act) {
+                switch (act.type) {
+                    case 'message':
+                        return 'Open chat';
+                    case 'friend_request':
+                        return 'Review requests';
+                    case 'system':
+                        return 'View details';
+                    default:
+                        return 'View';
+                }
             }
 
             function formatTime(timestamp) {
