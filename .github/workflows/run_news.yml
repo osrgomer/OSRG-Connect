@@ -2,8 +2,9 @@ name: Daily News Morning Runner
 
 on:
   schedule:
-    # 08:00 UTC is 08:00 AM in Lisbon (Winter Time)
+    # 08:00 AM Lisbon time
     - cron: '0 8 * * *'
+      timezone: Europe/Lisbon
   workflow_dispatch: # Allows you to run it manually for testing
 
 jobs:
