@@ -13,6 +13,10 @@ series_uploads/
 series_tts/
 backups/
 
+# Game binary assets (large files)
+sp_games/valley_game/assets/
+sp_assets/
+
 # System and Logs
 *.log
 .DS_Store
