@@ -93,6 +93,31 @@ if ($_GET['approve'] ?? false) {
     $message = 'User approved successfully!';
 }
 
+// Handle user rejection
+if ($_GET['reject'] ?? false) {
+    $reject_id = (int)($_GET['reject']);
+    try {
+        $stmt = $pdo_social->prepare("SELECT username, email FROM users WHERE id = ? AND approved = 0");
+        $stmt->execute([$reject_id]);
+        $user_data = $stmt->fetch();
+        if ($user_data) {
+            $pdo_social->prepare("DELETE FROM users WHERE id = ?")->execute([$reject_id]);
+            $message = 'Pending registration rejected and removed.';
+            if (!empty($user_data['email'])) {
+                $subject = "Registration Update - OSRG Connect";
+                $body = "Hi " . $user_data['username'] . ",\n\nWe reviewed your OSRG Connect registration and decided not to approve it at this time. Please reach out to omer@osrg.lol if you believe this is a mistake.\n\nBest regards,\nOSRG Connect Team";
+                $headers = "From: OSRG Connect <omer@osrg.lol>\r\nReply-To: omer@osrg.lol\r\nX-Mailer: PHP/" . phpversion();
+                @mail($user_data['email'], $subject, $body, $headers);
+            }
+        } else {
+            $message = 'Pending user not found or already processed.';
+        }
+    } catch (Exception $e) {
+        error_log('admin.php reject error: ' . $e->getMessage());
+        $message = 'Failed to reject user: ' . htmlspecialchars($e->getMessage());
+    }
+}
+
 // Handle database backup
 if ($_GET['backup_db'] ?? false) {
     if (!is_dir('backups')) mkdir('backups', 0755, true);
