@@ -129,4 +129,6 @@ This file will be edited and appended after any further edits made by the assist
 
 2026-03-19T20:31 — Ensured the news runner workflow runs every day at 08:00 Lisbon time by annotating the scheduled cron job with the proper timezone (file: .github/workflows/run_news.yml).
 
+2026-03-17T20:40 — Added a helper section on `global_news.html` so visitors can locally store their preferred API provider/key (Gemini, ChatGPT, Grok, Anthropic, etc.) even though the runner still uses the server-side secret (file: global_news.html).
+
 2026-02-17T22:57:57Z — Streamlined navigation by removing redundant 'friends' references and prioritizing canonical links.

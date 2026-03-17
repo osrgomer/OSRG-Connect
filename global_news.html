@@ -13,18 +13,72 @@
         .meta { margin-top: 32px; font-size: 0.9rem; color: #0f172a; }
         .status { color: #1d4ed8; font-weight: 600; margin-top: 6px; }
         a { color: #2563eb; }
-        .home-link { display: inline-flex; margin-top: 24px; padding: 12px 18px; background: #1d4ed8; color: #fff; border-radius: 10px; text-decoration: none; font-weight: 600; box-shadow: 0 10px 22px rgba(29, 64, 188, 0.25); }
+        .home-link { display: inline-flex; margin-top: 24px; padding: 12px 18px; background: #1d4ed8; color: #fff; border-radius: 10px; text-decoration: none; font-weight: 600; box-shadow: 0 10px 22px rgba(29, 64, 188, 0.25); transition: transform 0.2s ease; }
         .home-link:hover { transform: translateY(-1px); }
+        .api-helper { margin-top: 24px; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px; background: #f8fafc; }
+        .api-helper label { display: block; margin-top: 16px; font-weight: 600; color: #1e1b4b; }
+        .api-helper select,
+        .api-helper input { width: 100%; margin-top: 6px; padding: 10px 12px; border-radius: 8px; border: 1px solid #cbd5f5; font-size: 1rem; box-shadow: inset 0 1px 3px rgba(15, 23, 42, 0.06); }
+        .api-helper button { margin-top: 16px; padding: 10px 18px; border: none; background: #2563eb; color: white; font-weight: 600; border-radius: 8px; cursor: pointer; transition: background 0.2s ease; }
+        .api-helper button:hover { background: #1d4ed8; }
     </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const providerSelect = document.getElementById('provider');
+            const apiKeyInput = document.getElementById('apiKeyInput');
+            const saveButton = document.getElementById('saveKey');
+            const savedMessage = document.getElementById('savedMessage');
+
+            function loadSaved() {
+                const savedProvider = localStorage.getItem('global-news-provider');
+                const savedKey = localStorage.getItem('global-news-key');
+                if (savedProvider) providerSelect.value = savedProvider;
+                if (savedKey) {
+                    apiKeyInput.value = savedKey;
+                    savedMessage.textContent = `Saved key for ${savedProvider || 'selected provider'}.`;
+                }
+            }
+
+            function saveKey() {
+                const key = apiKeyInput.value.trim();
+                const provider = providerSelect.value;
+                if (!key) {
+                    savedMessage.textContent = 'Enter a key before saving.';
+                    return;
+                }
+                localStorage.setItem('global-news-provider', provider);
+                localStorage.setItem('global-news-key', key);
+                savedMessage.textContent = `Stored key for ${provider}.`;
+            }
+
+            saveButton.addEventListener('click', saveKey);
+            loadSaved();
+        });
+    </script>
 </head>
 <body>
     <div class="wrapper">
         <div class="card">
-            <h1>Global News Digest</h1>
-            <div class="status">Runner paused: no API key.</div>
-            <div class="meta">Summary prepared for Lisbon on March 17, 2026 · 2026-03-17 20:35 WET</div>
-            <div class="content"><p>Please set the <strong>GEMINI_API_KEY</strong> secret before running the news runner.</p></div>
-            <a class="home-link" href="index.php">Back to Connect</a>
+        <h1>Global News Digest</h1>
+        <div class="status">Runner paused: no API key.</div>
+        <div class="meta">Summary prepared for Lisbon on March 17, 2026 · 2026-03-17 20:35 WET</div>
+        <div class="content"><p>Please set the <strong>GEMINI_API_KEY</strong> secret before running the news runner.</p></div>
+        <div class="api-helper">
+            <p class="hint">Want to preview how the runner works with your own API key? Save it locally and select the vendor you plan to use. The runner will still use the server-side secret, but this helps you remember which key you configured.</p>
+            <label for="provider">Provider</label>
+            <select id="provider">
+                <option value="gemini">Gemini</option>
+                <option value="gpt">ChatGPT</option>
+                <option value="grok">Grok</option>
+                <option value="anthropic">Anthropic</option>
+                <option value="other">Other</option>
+            </select>
+            <label for="apiKeyInput">API Key</label>
+            <input type="text" id="apiKeyInput" placeholder="Paste your API key here">
+            <button id="saveKey">Save locally</button>
+            <p id="savedMessage" class="hint">No key stored yet.</p>
+        </div>
+        <a class="home-link" href="index.php">Back to Connect</a>
         </div>
     </div>
 </body>
