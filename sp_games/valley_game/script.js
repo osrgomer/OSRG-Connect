@@ -20,6 +20,8 @@ const rightBtn = document.getElementById('right-btn');
 const pauseBtn = document.getElementById('pause-btn');
 const muteBtn = document.getElementById('mute-btn'); // Mute Button
 const levelPopup = document.getElementById('level-popup');
+const carOptionsContainer = document.getElementById('car-options');
+const selectedCarName = document.getElementById('selected-car-name');
 
 // --- Game State Variables ---
 let gameStarted = false, gameOver = false, score = 0, lives = 4, carPosition = 1;
@@ -31,6 +33,13 @@ let levelTransitionTimeoutId = null; // Add this to manage the new delay timeout
 let isMuted = false; // Mute state
 const defaultVolumes = {}; // To store original volumes
 let availableWheels = []; // NEW: Track available wheels
+const carSelectionOptions = [
+    { id: 'car-a', label: 'Car A', description: 'Placeholder ride', bodyColor: '#d1d5db', borderColor: '#f97316' },
+    { id: 'car-b', label: 'Car B', description: 'Placeholder design', bodyColor: '#111827', borderColor: '#22d3ee' },
+    { id: 'car-c', label: 'Car C', description: 'Placeholder grip', bodyColor: '#15803d', borderColor: '#34d399' }
+];
+let selectedCarId = carSelectionOptions[0].id;
+let currentCarOption = carSelectionOptions[0];
 
 // --- Speed Configuration ---
 const baseDisplayedSpeed = 20; // baseline in km/h for player's car
@@ -89,6 +98,39 @@ function applyHitSlowdown() {
         setCurrentDisplayedSpeed(getTargetDisplayedSpeed());
         speedRestoreTimeout = null;
     }, SLOW_RECOVERY_MS);
+}
+
+function applySelectedCarStyles(option = currentCarOption) {
+    if (!option || !car) return;
+    car.style.backgroundColor = option.bodyColor || '#e6e1d2';
+    car.style.borderColor = option.borderColor || '#999';
+}
+
+function setSelectedCar(carId) {
+    const option = carSelectionOptions.find(o => o.id === carId);
+    if (!option) return;
+    selectedCarId = carId;
+    currentCarOption = option;
+    if (carOptionsContainer) {
+        carOptionsContainer.querySelectorAll('.car-option').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.carId === carId);
+        });
+    }
+    if (selectedCarName) selectedCarName.textContent = option.label;
+    applySelectedCarStyles(option);
+}
+
+function renderCarOptions() {
+    if (!carOptionsContainer) return;
+    carOptionsContainer.innerHTML = carSelectionOptions.map(option => `
+        <button type="button" class="car-option" data-car-id="${option.id}">
+            <span class="car-thumb" style="background:${option.bodyColor}; border-color:${option.borderColor};"></span>
+            <div class="car-option-info">
+                <span class="car-option-label">${option.label}</span>
+                <span class="car-option-description">${option.description}</span>
+            </div>
+        </button>
+    `).join('');
 }
 
 // --- Level Configuration (with Colors and Icons) ---
@@ -280,6 +322,7 @@ function initGame() {
 
     road.innerHTML = ''; sceneryLeft.innerHTML = ''; sceneryRight.innerHTML = '';
     setRandomRoofColor();
+    applySelectedCarStyles();
 
     // --- Reset Wheels ---
     availableWheels = ['fl', 'fr', 'rl', 'rr']; // Reset available wheels
@@ -538,8 +581,8 @@ function handleCollision(borehole) {
         }
 
         // Visual feedback
-        car.style.background = '#ffcccc';
-        setTimeout(() => { if (!gameOver) car.style.background = '#e6e1d2'; }, 300);
+        car.style.backgroundColor = '#ffcccc';
+        setTimeout(() => { if (!gameOver) applySelectedCarStyles(); }, 300);
 
         // Check game over AFTER decrementing and playing sound
         if (lives <= 0) {
@@ -721,11 +764,21 @@ leftBtn.addEventListener('click', () => moveCar('left')); rightBtn.addEventListe
 leftBtn.addEventListener('touchstart', (e) => { if (!paused) { e.preventDefault(); moveCar('left'); } }); rightBtn.addEventListener('touchstart', (e) => { if (!paused) { e.preventDefault(); moveCar('right'); } });
 pauseBtn.addEventListener('click', togglePause);
 muteBtn.addEventListener('click', toggleMute); // Add listener for mute button
+if (carOptionsContainer) {
+    carOptionsContainer.addEventListener('click', (event) => {
+        const optionButton = event.target.closest('.car-option');
+        if (!optionButton) return;
+        const { carId } = optionButton.dataset;
+        if (carId) setSelectedCar(carId);
+    });
+}
 startBtn.addEventListener('click', initGame);
 restartBtn.addEventListener('click', initGame);
 
 // --- Initial Setup on Load ---
 console.log("Initial setup: Updating UI and positioning car.");
+renderCarOptions();
+setSelectedCar(selectedCarId);
 updateGameUI();
 positionCar();
 // Set initial mute button state based on isMuted
