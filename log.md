@@ -128,6 +128,7 @@ This file will be edited and appended after any further edits made by the assist
 2026-03-19 — Pointed the navigation's Global News button to a local `global_news.html`, added the page placeholder, and reworked `news_bot.py` plus `run_news.yml` so the Gemini-powered runner writes that digest while respecting the shared `mine_config.php` API key (files: header.php, global_news.html, news_bot.py, .github/workflows/run_news.yml).
 
 2026-03-19T20:31 — Ensured the news runner workflow runs every day at 08:00 Lisbon time by annotating the scheduled cron job with the proper timezone (file: .github/workflows/run_news.yml).
+2026-03-17T20:49 — Temporarily added a one-time 20:51 Lisbon cron entry for today so the runner fires immediately before reverting back to the daily morning schedule (file: .github/workflows/run_news.yml).
 
 2026-03-17T20:40 — Added a helper section on `global_news.html` so visitors can locally store their preferred API provider/key (Gemini, ChatGPT, Grok, Anthropic, etc.) even though the runner still uses the server-side secret (file: global_news.html).
 
