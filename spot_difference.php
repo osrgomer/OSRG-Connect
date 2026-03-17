@@ -240,6 +240,7 @@ function getDifferences() {
         { name: 'Extra palm leaf', x1: 290, x2: 290, y: 147, radius: 25, found: false },
         { name: 'Added bird', x1: 200, x2: 200, y: 60, radius: 25, found: false }
     ];
+    return differences;
 }
 
 function drawGame() {
